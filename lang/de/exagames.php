@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2006 exabis internet solutions <info@exabis.at>
+*  (c) 2012 exabis internet solutions <info@exabis.at>
 *
 *  You can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
