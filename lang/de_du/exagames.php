@@ -3,7 +3,6 @@
 *  Copyright notice
 *
 *  (c) 2006 exabis internet solutions <info@exabis.at>
-*  All rights reserved
 *
 *  You can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
