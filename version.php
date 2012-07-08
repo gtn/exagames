@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version = 2012049300;
+$module->version = 2012049301;
 $module->maturity  = MATURITY_BETA;
 $module->release  = "1.0";
 $module->requires = 2011033005.06;
