@@ -82,7 +82,7 @@ function exagames_update_instance($game)
 function exagames_delete_instance($id) {
 	global $DB;
 	
-    if (! $game = $DB->get_record("exagames", "id", $id)) {
+    if (! $game = $DB->get_record("exagames", array("id"=>$id))) {
         return false;
     }
 
@@ -90,7 +90,7 @@ function exagames_delete_instance($id) {
 
     # Delete any dependent records here #
 
-    if (! $DB->delete_records("exagames", "id", $game->id)) {
+    if (! $DB->delete_records("exagames", array("id"=>$game->id))) {
         $result = false;
     }
 
