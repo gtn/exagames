@@ -103,7 +103,7 @@ if ($action == 'data') {
 		// Todo: Feedback
 
 		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-		$xmlResult->feedback = exagames_html_to_text(quiz_feedback_for_grade($attemptgrade, $quiz, $context));
+		$xmlResult->feedback = quiz_feedback_for_grade($attemptgrade, $quiz, $context);
 
 		header('Content-Type: text/xml; charset=utf-8');
 		echo $xmlResult->asPrettyXML();
@@ -390,8 +390,9 @@ exagames_print_tabs($game, 'show');
 /// Print the main part of the page
 
 if($game->gametype != 'gamelabs') {
+	$url = new moodle_url($_SERVER['PHP_SELF'], array('id'=>$id));
 $flashvars = array(
-	'gameurl' => $_SERVER['REQUEST_URI'],
+	'gameurl' => $url->out(),
 	'gamedataurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=data&rand='.time(),
 	'courseurl' => $CFG->wwwroot.'/course/view.php?id='.$course->id,
 	'translationsurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=translations'
