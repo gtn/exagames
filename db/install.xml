@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="exagames" COMMENT="Default comment for newmodule, please edit me" NEXT="exagames_question">
+    <TABLE NAME="exagames" COMMENT="default comment for newmodule, please edit me" NEXT="exagames_question">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course newmodule activity belongs to" PREVIOUS="id" NEXT="name"/>
