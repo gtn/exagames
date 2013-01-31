@@ -20,7 +20,7 @@ class Pro_SimpleXMLElement extends SimpleXMLElement
 		return new self('<?xml version="1.0" encoding="UTF-8"?><'.$rootElement.' />');
 	}
 
-	public function addAttribute($name, $value, $namespace = null)
+	public function addAttribute($name="", $value="", $namespace = null)
 	{
 		parent::addAttribute($name, $value, $namespace = null);
 
