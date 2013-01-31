@@ -40,6 +40,7 @@ class mod_exagames_mod_form extends moodleform_mod {
         $mform->addElement('text', 'name', get_string('exagamesname', 'exagames'), array('size'=>'64'));
 		$mform->setType('name', PARAM_TEXT);
 		$mform->addRule('name', null, 'required', null, 'client');
+		$this->add_intro_editor(false);
     /// Adding the optional "intro" and "introformat" pair of fields
 		/*
     	$mform->addElement('htmleditor', 'intro', get_string('exagamesintro', 'exagames'));
