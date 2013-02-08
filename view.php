@@ -12,7 +12,8 @@ require_once("inc.php");
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
 $a  = optional_param('a', 0, PARAM_INT);  // exagames ID
 $action  = optional_param('action', '', PARAM_TEXT);
-$responses = optional_param('responses', array(), PARAM_RAW);
+// from moodle 2.2 on we have to use optional_param_array, optional_param won't accept arrays
+$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_INT) : optional_param('responses', array(), PARAM_RAW);
 
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
