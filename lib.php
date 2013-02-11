@@ -463,7 +463,21 @@ function exagames_quiz_attempt($game, $grade)
 	$quiz = exagames_load_quiz($game->quizid);
 
 	$attemptnum = 1 + $DB->get_field_sql('SELECT MAX(attempt) FROM {quiz_attempts} WHERE quiz=? AND userid=?', array($game->quizid, $grade->userid));
-	$uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
+	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
+	
+
+	// copied from question/engine/datalib.php: public function insert_questions_usage_by_activity(question_usage_by_activity $quba)
+	// create a new question usage, and use that id to create a quiz attempt
+	// then we can delete the question usage.
+	$cm = get_coursemodule_from_instance('quiz', $quiz->id, $quiz->course, false, MUST_EXIST);
+	$context = context_module::instance($cm->id);
+	$record = new stdClass();
+	$record->contextid = $context->id;
+	$record->component = 'mod_quiz';
+	$record->preferredbehaviour = 'deferredfeedback';
+	$newid = $DB->insert_record('question_usages', $record);
+	// $DB->delete_records("question_usages", array("id"=>$newid));
+
 	
 	$attempt = new StdClass;
 	$attempt->quiz = $game->quizid;
@@ -474,7 +488,8 @@ function exagames_quiz_attempt($game, $grade)
 	$attempt->timefinish = time();
 	$attempt->timemodified = time();
 	$attempt->layout = '';
-	$attempt->uniqueid = $uniqueid;
+	$attempt->state = 'finished';
+	$attempt->uniqueid = $newid;
 	
 	$DB->insert_record('quiz_attempts', $attempt);
 	
