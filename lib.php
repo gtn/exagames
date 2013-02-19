@@ -458,13 +458,20 @@ function exagames_grade_item_update($game, $grades=NULL)
 
 function exagames_quiz_attempt($game, $grade)
 {
-	global $DB;
+	global $DB, $COURSE, $USER;
 	
 	$quiz = exagames_load_quiz($game->quizid);
 
 	$attemptnum = 1 + $DB->get_field_sql('SELECT MAX(attempt) FROM {quiz_attempts} WHERE quiz=? AND userid=?', array($game->quizid, $grade->userid));
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
 	
+	//preview made from teacher or higher has always attemptnum = 1, so this attemptnum is reserved
+	$context_course = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+	$roles = get_user_roles($context_course, $USER->id);
+	
+	foreach($roles as $role){
+		if($role->roleid <= 4 && $attemptnum == 1)	$attemptnum = 2;
+	}
 
 	// copied from question/engine/datalib.php: public function insert_questions_usage_by_activity(question_usage_by_activity $quba)
 	// create a new question usage, and use that id to create a quiz attempt
