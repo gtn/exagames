@@ -215,11 +215,8 @@ function exagames_scale_used ($exagamesid,$scaleid) {
  * @return boolean True if the scale is used by any exagames
  */
 function exagames_scale_used_anywhere($scaleid) {
-    if ($scaleid and record_exists('exagames', 'grade', -$scaleid)) {
-        return true;
-    } else {
-        return false;
-    }
+    // exagames has no scales
+	return false;
 }
 
 /**
