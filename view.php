@@ -438,7 +438,7 @@ else {
 	echo $flashcontent;
 */
 echo '
-<iframe src="'.$game->url.'&type=5" width="740" height="520" name="gamelabs.at">
+<iframe src="'.$game->url.'&type=5" width="760" height="540" name="gamelabs.at">
   <p>iframe is not working</p>
 </iframe>';
 }
