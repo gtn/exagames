@@ -40,7 +40,7 @@ class mod_exagames_mod_form extends moodleform_mod {
         $mform->addElement('text', 'name', get_string('exagamesname', 'exagames'), array('size'=>'64'));
 		$mform->setType('name', PARAM_TEXT);
 		$mform->addRule('name', null, 'required', null, 'client');
-		$this->add_intro_editor(false);
+		$this->standard_intro_elements(false);
     /// Adding the optional "intro" and "introformat" pair of fields
 		/*
     	$mform->addElement('htmleditor', 'intro', get_string('exagamesintro', 'exagames'));
@@ -83,6 +83,7 @@ class mod_exagames_mod_form extends moodleform_mod {
 		}
 		$mform->addElement('text', 'url', get_string('url', 'exagames'), array('size'=>'64'));
 		$mform->addHelpButton('url', 'url', 'exagames');
+		$mform->setType('url', PARAM_URL);
 //-------------------------------------------------------------------------------
     /// Adding the rest of exagames settings, spreeading all them into this fieldset
     /// or adding more fieldsets ('header' elements) if needed for better logic

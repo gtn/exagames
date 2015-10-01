@@ -257,7 +257,7 @@ function exagames_print_tabs($game, $currenttab)
 
     $row[] = new tabobject('show', $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id, get_string('show'));
 
-    $context = get_context_instance(CONTEXT_COURSE, $game->course);
+    $context = context_course::instance($game->course);
 	if (has_capability('moodle/course:manageactivities', $context)) {
 		$url = $CFG->wwwroot.'/course/mod.php?update='.$cm->id.'&return=1&sesskey='.$USER->sesskey;
 		$row[] = new tabobject('edit', $url, get_string('edit'));
@@ -291,6 +291,19 @@ function exagames_print_tabs($game, $currenttab)
 	print_tabs($tabs, $currenttab, $inactive, $activated);
 }
 
+/**
+ * copy from moodle deprectatedlib.php
+ */
+function block_exagames_add_to_log($courseid, $module, $action, $url='', $info='', $cm=0, $user=0) {
+    //debugging('add_to_log() has been deprecated, please rewrite your code to the new events API', DEBUG_DEVELOPER);
+
+    // This is a nasty hack that allows us to put all the legacy stuff into legacy storage,
+    // this way we may move all the legacy settings there too.
+    $manager = get_log_manager();
+    if (method_exists($manager, 'legacy_add_to_log')) {
+        $manager->legacy_add_to_log($courseid, $module, $action, $url, $info, $cm, $user);
+    }
+}
 
 function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
@@ -302,7 +315,7 @@ function exagames_load_quiz($quizid) {
 	}
 
 	// shuffle questions
-	if ($quiz->shufflequestions) {
+	if (!empty($quiz->shufflequestions)) {
 		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
 		$quiz->questions = quiz_repaginate($quiz->questions, 0, true);
 	}
@@ -463,7 +476,7 @@ function exagames_quiz_attempt($game, $grade)
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
 	
 	//preview made from teacher or higher has always attemptnum = 1, so this attemptnum is reserved
-	$context_course = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+	$context_course = context_course::instance($COURSE->id);
 	$roles = get_user_roles($context_course, $USER->id);
 	
 	foreach($roles as $role){

@@ -103,7 +103,7 @@ if ($action == 'data') {
 		));
 		// Todo: Feedback
 
-		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+		$context = context_module::instance($cm->id);
 		$xmlResult->feedback = quiz_feedback_for_grade($attemptgrade, $quiz, $context);
 
 		header('Content-Type: text/xml; charset=utf-8');
@@ -199,7 +199,7 @@ if ($action == 'data') {
 	}
 }
 
-$context = get_context_instance(CONTEXT_COURSE, $game->course);
+$context = context_course::instance($game->course);
 if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
 	$questionConfig = new stdClass();
 	$questionConfig->id = $questionId;
@@ -218,23 +218,20 @@ if (has_capability('moodle/course:manageactivities', $context) && ($action == 'c
 }
 
 
-add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
+block_exagames_add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
 
 /// Print the page header
 $strexagamess = get_string("modulenameplural", "exagames");
 $strexagames  = get_string("modulename", "exagames");
 
-$navlinks = array();
-$navlinks[] = array('name' => $strexagamess, 'link' => "index.php?id=$course->id", 'type' => 'activity');
-$navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' => 'activityinstance');
-
-$navigation = build_navigation($navlinks);
+$PAGE->navbar->add($strexagamess, "index.php?id=$course->id", 'activity');
+$PAGE->navbar->add($game->name);
 
 $PAGE->set_url($_SERVER['REQUEST_URI']);
 $PAGE->requires->js('/mod/exagames/js/swfobject.js', true);
 
 
-$context = get_context_instance(CONTEXT_COURSE, $game->course);
+$context = context_course::instance($game->course);
 /*
 if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_question_file') {
 	$questionId  = optional_param('questionid', '', PARAM_INT);
@@ -325,8 +322,12 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 
 */
 
-print_header_simple(format_string($game->name), "", $navigation, "", "", true,
-			  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
+$PAGE->set_heading($strexagamess.': '.$game->name);
+$PAGE->set_title($strexagamess.': '.$game->name);
+
+echo $OUTPUT->header();
+// print_header_simple(format_string($game->name), "", $navigation, "", "", true,
+//			  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
 
 if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_questions') {
 
