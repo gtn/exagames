@@ -1,32 +1,27 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Exabis Games
 //
-// Moodle is free software: you can redistribute it and/or modify
+// (c) 2016 GTN - Global Training Network GmbH <office@gtn-solutions.com>
+//
+// Exabis Games is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Moodle is distributed in the hope that it will be useful,
+// This script is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// You can find the GNU General Public License at <http://www.gnu.org/licenses/>.
+//
+// This copyright notice MUST APPEAR in all copies of the script!
  
-/**
- * TODO
- *
- * @package   EXAGAMES_FRANKENSTYLE
- * @copyright EXAGAMES
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 defined('MOODLE_INTERNAL') || die();
 
-$module->version = 2013021400;
-$module->maturity  = MATURITY_BETA;
-$module->release  = "1.0";
-$module->requires = 2011033005.06;
-$module->cron      = 0;
-$module->component = 'mod_exagames';
+$plugin->component = 'mod_exagames';
+$plugin->version = 2013021401;
+$plugin->maturity  = MATURITY_BETA;
+$plugin->release  = "3.0.0";
+$plugin->requires = 2011033005;
+$plugin->cron      = 0;
