@@ -20,8 +20,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_exagames';
-$plugin->version = 2016050900;
+$plugin->version = 2016092100;
 $plugin->maturity  = MATURITY_BETA;
-$plugin->release  = "3.0.0";
+$plugin->release  = "4.5.0";
 $plugin->requires = 2011033005;
 $plugin->cron      = 0;
