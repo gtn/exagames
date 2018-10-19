@@ -1,0 +1,480 @@
+	<!doctype html>
+	<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="html5/blurrygame/blurrygame.css">
+		  <script src="html5/js/jquery.min.js"></script>
+	</head>
+	<body>
+		<div id="contentWrapper" style="display:none;">
+			<h1 id="headerQuestionCounter"> </h1>
+			<h1 id="headerPoints">  </h1>
+			<div id="imageContainer">
+				<img id="quizImage"/>
+				<div id="squareContainer"></div>
+			</div>
+			<div id="html-container">
+				<div id="heart-container">
+				</div>
+				<div id="question-field">
+
+				</div>
+
+			</div>
+		</div>
+		<script>
+			var score = 0;
+			var timeScore = 0;
+			var questions = [];
+			var answers = "";
+			var questionCnt = 0;
+			var gamedataurl = flashvars.gamedataurl;
+			var ajaxCall = {
+					url: gamedataurl,
+					success: function(data, status, xhr) {
+						let questionNodes = data.getElementsByTagName('questions')[0].childNodes;
+						for(let i = 0; i < questionNodes.length; i++) {
+							let answers = [];
+							if(questionNodes[i].getAttribute('type') == 'multichoice') {
+								let answerNodes = questionNodes[i].childNodes[3].childNodes;
+								for(let j = 0; j < answerNodes.length; j++) {
+									let answer = answerNodes[j].childNodes;
+									answers.push({
+										id: answerNodes[j].getAttribute('id'),
+										text: answer[0].innerHTML,
+										isCorrect: Math.round(answer[0].parentElement.attributes[1].value) == 1 ? true:false,
+										fraction: answer[0].parentElement.attributes[1].value
+									});
+								}
+							} else if (questionNodes[i].getAttribute('type') == 'truefalse') {
+
+								answers.push({
+									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 1:0,
+									text: "Wahr",
+									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? true:false,
+									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 1.0:0.0
+								},
+								{
+									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 0:1,
+									text: "Falsch",
+									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? false:true,
+									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 0.0:1.0
+								})
+							}
+							let questionObj = {
+								answers: answers
+							};
+							let type = null;
+							switch(questionNodes[i].getAttribute('type')) {
+								case 'multichoice':
+									if(isMultiChoiceMultiAnswersType(answers)) {
+										type='multiple-choice-multiple-answer';
+									} else {
+										type='multiple-choice-single-answer';
+									}
+									break;
+								case 'truefalse':
+									type = 'multiple-choice-single-answer';
+									break;
+							}
+							$.ajax({
+								url: questionNodes[i].childNodes[1].childNodes[2].innerHTML,
+								type:'HEAD',
+								error: function() {
+									console.log("ERROR: Filepath to image does not exist!");
+								},
+								success: function() {
+									if(questionNodes[i].childNodes[1].childNodes[2].innerHTML != '') {
+										$.extend(questionObj, {
+											id: questionNodes[i].getAttribute('id'),
+											text: questionNodes[i].childNodes[0].innerHTML,
+											imagePath: questionNodes[i].childNodes[1].childNodes[2].innerHTML,
+											type: type,
+											difficulty: questionNodes[i].childNodes[1].childNodes[1].innerHTML,
+											displayOrder: questionNodes[i].childNodes[1].childNodes[3].innerHTML
+										});
+										questions.push(questionObj);
+									} else {
+										console.log("ERROR: Filepath to image is empty!");
+									}
+								}
+							});
+						}
+
+					},
+					error: function(xhr, status, error) {
+						console.log("error");
+					}
+			};
+			$.ajax(ajaxCall);
+
+			//on finishing all ajax requests, loaded all available questions
+			$(document).ajaxStop(function() {
+				if(questions.length == 0) {
+					alert("No questions configured yet!");
+					exit();
+				}
+				imageAnimationSetup(function (){
+					$('#contentWrapper').show();
+				});
+
+			});
+				var round = 0;
+				var blurInterval;
+				var lifeCount = 3;
+				var curPoints = 100;
+				const EVALUATION_DISPLAY_DURATION = 5000;
+				var startButtonCnt = 0;
+
+				var question1 = {
+					text: "Wer ist das?",
+					imagePath: "assets/burr.jpg",
+					type: "multiple-choice-single-answer",
+					answers: [{text: "Bill Burr", isCorrect: true },
+					{text: "Jeff Bezos", isCorrect: false },
+					{text: "Steve Jobs", isCorrect: false }]
+				}
+
+				var question2 = {
+					text: "Wieviel ist 3x3",
+					imagePath: "assets/bezos.jpg",
+					type: "multiple-choice-single-answer",
+					answers: [{text: "3", isCorrect: false },
+					{text: "9", isCorrect: true },
+					{text: "27", isCorrect: false }]
+				}
+
+				//questions.push(question1);
+				//questions.push(question2);
+
+
+			function imageAnimationSetup(cb_showOnFinish) {
+				if(round == questions.length){
+					if(lifeCount <= 0) {
+						showGameOver();
+					} else {
+						showScore(score);
+					}
+					return;
+				}
+				timeScore += curPoints;
+				questionCnt++;
+				removeStartButton();
+				resetTimepoints();
+				resetHeartContainer();
+				resetImageContainer();
+				resetQuestionField();
+
+
+				startButtonCnt++;
+				$('<button id="startAnim-' + startButtonCnt + '" class="btn btn-light start-button">Start</button>').insertBefore('#heart-container');
+				$('#quizImage').css('opacity', '0');
+				var img = document.getElementById('quizImage');
+
+				img.onload = function() {
+					if($('#contentWrapper').css('display') == 'none' || $('#imageContainer').children().css('display') == 'none')
+						cb_showOnFinish();
+					var imgWidth = $("#quizImage").width();
+					var imgHeight =  $("#quizImage").height();
+					$('#squareContainer').css('width', imgWidth+ 'px');
+					$('#squareContainer').css('height', imgHeight + 'px');
+					$('#imageContainer').css('width', imgWidth+ 'px');
+
+					let squares = [];
+					for(var i = 0; i < 100; i++) {
+						var square = $('<div>', {
+						'class': 'blurry-square',
+						'id': 'square-nr-' + i,
+						'height': imgHeight/10,
+						'width': imgWidth/10
+						});
+						square.appendTo('#squareContainer');
+					}
+					squares = questions[round].displayOrder.split(",");
+					squares = squares.map(x => "square-nr-" + x);
+					switch(questions[round].difficulty) {
+						case 'easy':
+							var difficultyInterval = 250;
+							break;
+						case 'intermediate':
+							var difficultyInterval = 150;
+							break;
+						case 'hard':
+							var difficultyInterval = 50;
+							break;
+					}
+
+						$('#startAnim-' + startButtonCnt).on('click', function() {
+							if(typeof blurInterval === 'undefined') {
+								showQuestion();
+								blurInterval = setInterval(function() {
+
+									$('#' + squares[0]).css('opacity', '0');
+									squares.shift();
+									curPoints--;
+									$('#headerPoints').html('Punkte: ' + curPoints);
+									if(squares.length === 0) {
+										clearInterval(blurInterval);
+									}
+								}, difficultyInterval);
+							}
+
+						});
+
+				};
+
+				setTimeout(function() {
+					$('#quizImage').css('opacity', '1');
+
+				}, 100);
+
+				liveCountSetup();
+				$('#quizImage').attr('src', questions[round].imagePath);
+
+				//var img = document.getElementById('quizImage');
+
+			}
+
+
+			function resetTimepoints() {
+				curPoints = 100;
+				$('#headerPoints').html('Punkte: ' + curPoints);
+				$('#headerQuestionCounter').html('Frage ' + questionCnt + '/' + questions.length);
+
+			}
+
+			function showScore(mdl_score) {
+				$('#contentWrapper').css('opacity', 0.15);
+				$('#GameContent').append('<div id="scoreContainer"> <h3>Sie haben ' + ((mdl_score*100).toFixed(2)) + '% der Punkte im Quiz in ' + timeScore + ' von ' + (questions.length * 100) + ' Zeitpunkten erreicht!</h3> </div>');
+			}
+
+			function showGameOver() {
+				$('#contentWrapper').css('opacity', 0.15);
+				$('#GameContent').append('<div id="scoreContainer"> <h3>Game Over! :(</h3> </div>');
+			}
+
+			function removeStartButton() {
+				$('#startAnim-' + startButtonCnt).remove();
+			}
+
+			function resetHeartContainer() {
+				$('#heart-container').empty();
+			}
+
+			function resetImageContainer() {
+				$('#squareContainer').empty();
+			}
+
+			function resetQuestionField() {
+				$('#question-field').empty();
+			}
+
+			function showQuestion() {
+				resetQuestionField();
+				actQuestion = questions[round];
+				$('#question-field').append('<div id="c-question"><p id="pQuestion">' + actQuestion.text + '</p></div>');
+
+				if(actQuestion.type === 'multiple-choice-single-answer') {
+					var domAppend = '<ul id="answerlist">';
+					for(var i = 0; i < actQuestion.answers.length; i++) {
+						if(actQuestion.answers[i].isCorrect) {
+							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-correct">' + actQuestion.answers[i].text + '<div class="correct-image"></div></li>';
+						} else {
+							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-wrong">' + actQuestion.answers[i].text + '<div class="wrong-image"></div></li>';
+						}
+					}
+					domAppend += '</ul>';
+					$('#question-field').append(domAppend);
+					$('.alternative').click(function(e) {
+							clearInterval(blurInterval);
+							blurInterval = undefined;
+							handleAnswer(e, "single-choice");
+						});
+				} else if(actQuestion.type === 'multiple-choice-multiple-answer') {
+					var domAppend = '<div id="answerlist">';
+					for(var i = 0; i < actQuestion.answers.length; i++) {
+						if(actQuestion.answers[i].fraction > 0) {
+							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="' + actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-correct alternative-inline">' + actQuestion.answers[i].text + '<div class="correct-image"></div></li></div>';
+						} else {
+							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="' + actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-wrong alternative-inline">' + actQuestion.answers[i].text + '<div class="wrong-image"></div></li></div>';
+						}
+					}
+					domAppend += '</div>';
+					$('#question-field').append(domAppend);
+					$('#question-field').append('<button id="loginButton" class="btn btn-dark">Weiter</button>');
+					$('#loginButton').click(function(e) {
+							clearInterval(blurInterval);
+							blurInterval = undefined;
+							handleAnswer(e, "multiple-choice");
+						});
+				}
+			}
+
+
+
+			function handleAnswer(e, type) {
+				$('#startAnim-' + startButtonCnt).css('pointer-events', 'none');
+				if(type === 'single-choice') {
+				singleAlternativeHandler(e, e.currentTarget.id.substr(e.currentTarget.id.length-1));
+				} else if(type === 'multiple-choice') {
+					multipleAlternativesHandler(e);
+				}
+			}
+
+			function singleAlternativeHandler(e, answerId) {
+				let answText = $(e.currentTarget).text();
+				var curAnswerId = null;
+				for(let i = 0; i < questions[round].answers.length; i++) {
+					if(questions[round].answers[i].text == answText) {
+						curAnswerId = questions[round].answers[i].id;
+						break;
+					}
+				}
+
+				answers += "&responses[" + questions[round].id + "]=" + curAnswerId;
+				if(e.currentTarget.attributes[1].value.includes("alternative-correct")) {
+					$(e.currentTarget).removeClass('alternative-hover');
+					score += (1/questions.length)*questions[round].answers[answerId].fraction;
+					$('.correct-image').css('background-image', 'url(assets/checked.png)');
+				} else {
+					lifeCount--;
+					$('#' + e.currentTarget.attributes[0].value).find('div').css('background-image', 'url(assets/cancel.png)');
+				}
+				selectedAlternativeAnimation();
+				round++;
+				if(round == questions.length) {
+					storeResultScore();
+				}
+				setTimeout(function() {
+					$('#imageContainer').children().hide();
+					imageAnimationSetup(function (){
+						$('#imageContainer').children().show();
+					});
+				}, EVALUATION_DISPLAY_DURATION);
+			}
+
+			function multipleAlternativesHandler(e) {
+
+				var checkedBoxes = getCheckedBoxes();
+				var tempScore = 0;
+				var curAnswerIds = "";
+				var parser = new DOMParser;
+				console.log(questions[round].answers);
+				for(var i = 0; i < checkedBoxes.length; i++) {
+					var box = checkedBoxes[i];
+
+					if(box.wasChecked) {
+						let answText = box.node[0].textContent;
+						for(let i = 0; i < questions[round].answers.length; i++) {
+							if(parser.parseFromString(questions[round].answers[i].text, 'text/html').body.textContent == answText) {
+								if(curAnswerIds != "") 	curAnswerIds += ",";
+								curAnswerIds += questions[round].answers[i].id;
+								break;
+							}
+						}
+
+						var file;
+						tempScore += Number(questions[round].answers[i].fraction);
+						if(box.alternativeState) {
+							file = "checked.png"
+						} else {
+							lifeCount--;
+							file = "cancel.png";
+						}
+						$('#' + box.node[0].id).find('div').css('background-image', 'url(assets/' + file + ')');
+					}
+				}
+				score += (1/questions.length)*tempScore;
+				answers += "&responses[" + questions[round].id + "]=" + curAnswerIds;
+				selectedAlternativeAnimation();
+				round++;
+				if(round == questions.length) {
+					storeResultScore();
+				}
+				setTimeout(function() {
+					$('#imageContainer').children().hide();
+					imageAnimationSetup(function (){
+						$('#imageContainer').children().show();
+					});
+				}, EVALUATION_DISPLAY_DURATION);
+
+			}
+
+			function getCheckedBoxes() {
+				var selected = [];
+				$('#answerlist').find('.checkbox').each(function() {
+						var elem = $(this).next();
+
+						selected.push({
+							node: $(this).next(),
+							alternativeState: elem[0].attributes[1].value.includes("alternative-correct"),
+							wasChecked: $(this).prop('checked')
+						});
+				});
+				return selected;
+			}
+
+			function selectedAlternativeAnimation() {
+				$('.alternative-wrong').addClass('alternative-reveal-wrong');
+				$('.alternative-correct').addClass('alternative-reveal-correct');
+				$('#squareContainer').empty();
+				var margin = 2.5;
+				var animWrongAlternatives = setInterval(function() {
+					$('.alternative-wrong').css('margin-left', margin + 'px');
+					margin += 2.5;
+					if(margin >= 35)
+						clearInterval(animWrongAlternatives);
+				}, 40);
+
+			}
+
+
+
+			function liveCountSetup() {
+				if(lifeCount <= 0)
+					showGameOver();
+					//throw new Error("Game over: No hearts left. :(");
+					$('#heart-container').append('<span id="livesText">Lives: </span>');
+				for(var i = 0; i < lifeCount; i++) {
+					$('#heart-container').append('<img class="heart-img pulse" src="assets/herz2.png"/>');
+				}
+			}
+
+			function isMultiChoiceMultiAnswersType(answers) {
+				for(let i = 0; i < answers.length; i++) {
+					if(!(answers[i].fraction == 0.0000000 || answers[i].fraction == 1.0000000)) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			function storeResultScore() {
+				console.log(flashvars.gameurl + answers);
+				$.ajax({
+					url: (flashvars.gameurl + "&action=data" +answers + "&time=" + timeScore),
+					type: 'POST',
+					error: function(xhr, status, error) {
+						console.log(error);
+
+					},
+					success: function(data) {
+						console.log(data);
+
+					}
+				});
+			}
+
+
+
+	/*
+			function checkboxSettings() {
+				$(document).ready(function(){
+				    $('.checkbox').click(function() {
+				        $('.checkbox').not(this).prop('checked', false);
+				    });
+				});
+			}
+	*/
+		</script>
+	</body>
+	</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="html5/tiles_editor/tiles_editor.css">
+ 	 <script src="html5/js/jquery.min.js"></script>
+<link rel="stylesheet" href="html5/css/bootstrap.min.css">
+
+</head>
+
+<body>
+	<div id="mainContainer">
+		<div class="container">
+			<div class="row">
+				<button id="loadFile" class="btn btn-dark button-corners">Bild laden...</button>
+
+			</div>
+			<div class="row">
+				<div id="imageContainerRow" class="col-7">
+						<img id="quizImage"/>
+						<div id="squareContainer"></div>
+				</div>
+				<div class="col-3">
+					<form id="difficultyForm" action="">
+							<legend id="difficultyLabel">Schwierigkeitsgrad:</legend>
+							<input type="radio" name="difficulty" value="easy"> Langsam </br>
+							<input type="radio" name="difficulty" value="intermediate"> Mittel </br>
+							<input type="radio" name="difficulty" value="hard"> Schnell </br>
+					</form>
+				</div>
+			</div>
+			<div class="row buttons-margin-auto">
+				<div class="col-3">
+					<div class="row padding-button">
+					<button id="randomizeButton" class="btn btn-dark buttons button-corners button-size">Randomize</button>
+					</div>
+					<div class="row">
+						<button id="simulateButton" class="btn btn-dark buttons button-corners button-size">Simulieren</button>
+					</div>
+					<div class="row padding-button">
+						<button id="resetButton" class="btn btn-dark buttons button-corners button-size">Reset</button>
+					</div>
+				</div>
+				<div class="col-3">
+					<div id="saveButtonRow" class="row">
+						<button id="saveButton" class="btn btn-light buttons button-corners">Speichern</button>
+						<span id="saveText" style="display:none;">Konfiguration wurde gespeichert!</span>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		console.log($('#id_quizid option:selected').text());
+		$('#id_quizid').on('change', function() {
+			console.log("changed");
+		});
+		console.log(flashvars);
+		const SQUARE_MAX = 100;
+		var imgPaths = flashvars.selectable_images;
+		var loadedExistingMarker = 0;
+		console.log(imgPaths);
+		$(document).ready(function() {
+
+
+		});
+		var clickedTiles = [];
+		$('#loadFile').on('click', function() {
+			$('#mainContainer').append(getBackgroundChangeContainer(imgPaths[0]));
+
+					let optionList = document.getElementById('selectFile').options;
+					let options = [];
+					for(let i = 0; i < imgPaths.length; i++)
+						options.push({
+							text: imgPaths[i].replace(/^.*[\\\/]/, ''),
+							value: imgPaths[i]
+						});
+					options.forEach(option =>
+ 			 			optionList.add(
+    						new Option(option.text, option.value, option.selected)
+  			 			)
+ 					);
+					sortSelect(document.getElementById('selectFile'));
+
+					$('#selectFile').on('change', function() {
+ 						$('#changeToImage').attr('src', $('#selectFile').val());
+ 					});
+
+				 	let curPath = 0;
+					$('#backgroundImageSelectorLeft').on('click', function() {
+						if(curPath > 0) {
+								curPath--;
+								$('#changeToImage').attr('src', imgPaths[curPath]);
+							}
+					})
+
+					$('#backgroundImageSelectorRight').on('click', function() {
+						if(curPath < imgPaths.length-1) {
+								curPath++;
+								$('#changeToImage').attr('src', imgPaths[curPath]);
+							}
+					})
+
+					$('#confirmBackgroundImageButton').on('click', function() {
+						$('#squareContainer').empty();
+						var fileLink = $('#changeToImage').attr('src');
+						$('#quizImage').attr('src', fileLink);
+							var img = document.getElementById('quizImage');
+							img.onload = function() {
+								var imgWidth = img.clientWidth;
+								var imgHeight = img.clientHeight;
+								$('#squareContainer').css('width', imgWidth+ 'px');
+								$('#squareContainer').css('height', imgHeight + 'px');
+								//$('#imageContainer').css('width', imgWidth+ 'px');
+								var squares = [];
+								for(var i = 0; i < SQUARE_MAX; i++) {
+									var square = $('<div>', {
+										'class': 'blurry-square',
+										'id': 'square-nr-' + i,
+										height: imgHeight/10,
+										width: imgWidth/10
+									});
+									square.appendTo('#squareContainer');
+									squares.push(square);
+								}
+								$('.blurry-square').on('click', function(e) {
+									if($(e.target).css('opacity') == 0.3) {
+										var clickedId = e.currentTarget.attributes[1].nodeValue;
+										clickedTiles.push(clickedId.substring(10, clickedId.length));
+										$('#' + clickedId).css('opacity', '0.95');
+									}
+								});
+								//on existing image, load square config from db
+								if(loadedExistingMarker == 0 && flashvars.content_url !== '' && flashvars.display_order !== '') {
+									cb_setSquaresOpac();
+								}
+								$('#changeBackgroundContainer').remove();
+							};
+					});
+
+
+
+
+		});
+
+		$('#simulateButton').on('click', function() {
+			let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
+			if(actRadioVal == undefined) {
+				showStatusText("Schwierigkeitsgrad muss für Simulation festgelegt sein!");
+				return;
+			}
+			if(clickedTiles.length > 2) {
+				$('#mainContainer').css('pointer-events', 'none');
+				let sim_squares = clickedTiles.slice(0);;
+				switch(actRadioVal) {
+						case 'easy':
+							var difficultyInterval = 250;
+							break;
+						case 'intermediate':
+							var difficultyInterval = 150;
+							break;
+						case 'hard':
+							var difficultyInterval = 50;
+							break;
+				}
+
+				var blurInterval = setInterval(function() {
+					$('#square-nr-' + sim_squares[0]).css('opacity', '0.3');
+					sim_squares.shift();
+					if(sim_squares.length === 0) {
+						clearInterval(blurInterval);
+						console.log(clickedTiles);
+
+						setTimeout(function() {
+							for(let j = 0; j < clickedTiles.length; j++)
+								$('#square-nr-' + clickedTiles[j]).css('opacity', '0.95');
+							$('#mainContainer').css('pointer-events', '');
+						}, 200);
+					}
+				}, difficultyInterval);
+
+			}
+		});
+
+		$('#randomizeButton').on('click', function() {
+			let square_storage = [];
+			for(let i = 0; i < SQUARE_MAX; i++) {
+				square_storage.push(i);
+			}
+			clickedTiles = []
+			for(let j = 0; j < SQUARE_MAX; j++) {
+				var rand = square_storage[Math.floor(Math.random() * square_storage.length)];
+				square_storage.splice(square_storage.indexOf(rand), 1);
+				$('#square-nr-' + rand).css('opacity', '0.95');
+				clickedTiles.push(rand);
+			}
+
+		});
+
+		if(flashvars.content_url !== '' && flashvars.display_order !== '') {
+			$('#fileLink').val(flashvars.content_url);
+			clickedTiles = flashvars.display_order.split(",");
+		}
+
+		$('#resetButton').on('click', function() {
+			console.log(clickedTiles);
+			for(var i = 0; i < clickedTiles.length; i++)
+				$('#square-nr-' + clickedTiles[i]).css('opacity', '0.3');
+			clickedTiles = [];
+		});
+
+		$('#saveButton').on('click', saveConfiguration);
+
+		function cb_setSquaresOpac() {
+			for(let i = 0; i < clickedTiles.length; i++)
+				$('#square-nr-' + clickedTiles[i]).css('opacity', '0.95');
+			loadedExistingMarker = 1;
+		}
+
+		var statusTextInt = undefined;
+		function showStatusText(str) {
+			if(statusTextInt != undefined)
+				clearTimeout(statusTextInt);
+			$('#saveText').css('display', 'none');
+			$('#saveText').html(str);
+			$('#saveText').fadeIn();
+			statusTextInt = setTimeout(function() {
+				$('#saveText').fadeOut();
+			}, 5000);
+
+		}
+
+		function saveConfiguration() {
+			if(clickedTiles.length < 100) {
+				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!");
+			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
+				showStatusText("Fehler: Kein Schwierigkeitsgrad gewählt!");
+			} else {
+				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
+				console.log(actRadioVal);
+				let filepath = $('#quizImage').attr('src');
+				let ajaxCall = {
+					url: window.location.href ,
+					method: "GET",
+					data: {
+						display_order: clickedTiles.join(),
+						content_url: filepath,
+						difficulty: actRadioVal
+					},
+					success: function(data, status, xhr) {
+						showStatusText("Konfiguration wurde gespeichert!");
+					},
+					error: function(xhr, status, error) {
+						console.log("error");
+						alert("Error @ saving configuration.");
+					}
+				};
+				$.ajax(ajaxCall);
+			}
+
+		}
+
+		function getBackgroundChangeContainer(initialBackgroundPath) {
+			var comp = '<div id="changeBackgroundContainer">'
+						+	'<div class="container">'
+						+		'<div class="row">'
+						+			'<select class="form-control btn-dark" id="selectFile"></select>'
+						+		'</div>'
+						+		'<div class="row">'
+						+			'<div class="col-1">'
+									+	'<div id="backgroundImageSelectorLeft" class="arrow-left"> </div>'
+						+			'</div>'
+						+			'<div class="col-10">'
+									+	'<img id="changeToImage" src="' + initialBackgroundPath + '">'
+						+			'</div>'
+						+			'<div class="col-1">'
+									+	'<div id="backgroundImageSelectorRight" class="arrow-right"> </div>'
+						+			'</div>'
+						+		'</div>'
+						+		'<div id="confirmBackImageContainer" class="row">'
+							+ 		'<button id="confirmBackgroundImageButton" class="btn btn-dark">Für Frage verwenden</button>'
+						+		'</div>'
+						+	'</div>'
+						+ '</div>';
+			return comp;
+		}
+
+		function sortSelect(selElem) {
+		    var tmpAry = new Array();
+		    for (var i=0;i<selElem.options.length;i++) {
+		        tmpAry[i] = new Array();
+		        tmpAry[i][0] = selElem.options[i].text;
+		        tmpAry[i][1] = selElem.options[i].value;
+		    }
+		    tmpAry.sort();
+		    while (selElem.options.length > 0) {
+		        selElem.options[0] = null;
+		    }
+		    for (var i=0;i<tmpAry.length;i++) {
+		        var op = new Option(tmpAry[i][0], tmpAry[i][1]);
+		        selElem.options[i] = op;
+		    }
+		    return;
+		}
+	</script>
+</body>
+
+</html>

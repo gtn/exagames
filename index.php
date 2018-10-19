@@ -21,7 +21,7 @@ if (! $course = $DB->get_record("course", array("id"=>$id))) {
 
 require_login($course->id);
 
-block_exagames_add_to_log($course->id, "exagames", "view all", "index.php?id=$course->id", "");
+add_to_log($course->id, "exagames", "view all", "index.php?id=$course->id", "");
 
 
 /// Get all required stringsexagames
@@ -32,14 +32,11 @@ $strexagames  = get_string("modulename", "exagames");
 
 /// Print the header
 
-//$navlinks = array();
-//$navlinks[] = array('name' => $strexagamess, 'link' => '', 'type' => 'activity');
+$navlinks = array();
+$navlinks[] = array('name' => $strexagamess, 'link' => '', 'type' => 'activity');
 //$navigation = build_navigation($navlinks);
-
-$PAGE->set_heading($strexagamess);
-$PAGE->set_title($strexagamess);
-echo $OUTPUT->header();
-// print_header_simple("$strexagamess", "", $navigation, "", "", true, "", navmenu($course));
+$PAGE->navbar->add($course->fullname, new moodle_url('', array('id' => $course->id)));
+//print_header_simple("$strexagamess", "", $navigation, "", "", true, "", navmenu($course));
 
 /// Get all the appropriate data
 

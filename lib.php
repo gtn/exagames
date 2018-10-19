@@ -215,8 +215,11 @@ function exagames_scale_used ($exagamesid,$scaleid) {
  * @return boolean True if the scale is used by any exagames
  */
 function exagames_scale_used_anywhere($scaleid) {
-    // exagames has no scales
-	return false;
+    if ($scaleid and record_exists('exagames', 'grade', -$scaleid)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -257,7 +260,7 @@ function exagames_print_tabs($game, $currenttab)
 
     $row[] = new tabobject('show', $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id, get_string('show'));
 
-    $context = context_course::instance($game->course);
+	$context = context_module::instance($cm->id);
 	if (has_capability('moodle/course:manageactivities', $context)) {
 		$url = $CFG->wwwroot.'/course/mod.php?update='.$cm->id.'&return=1&sesskey='.$USER->sesskey;
 		$row[] = new tabobject('edit', $url, get_string('edit'));
@@ -275,9 +278,6 @@ function exagames_print_tabs($game, $currenttab)
 			}
 		}
 		
-		if ($game->gametype == 'tiles') {
-			$row[] = new tabobject('configure_questions', $CFG->wwwroot.'/mod/exagames/view.php?action=configure_questions&id='.$cm->id, get_string('configure_questions', 'exagames'));
-		}
 
 		if ($game->gametype != 'tiles' && $game->gametype != 'gamelabs') {
 			$row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
@@ -291,19 +291,6 @@ function exagames_print_tabs($game, $currenttab)
 	print_tabs($tabs, $currenttab, $inactive, $activated);
 }
 
-/**
- * copy from moodle deprectatedlib.php
- */
-function block_exagames_add_to_log($courseid, $module, $action, $url='', $info='', $cm=0, $user=0) {
-    //debugging('add_to_log() has been deprecated, please rewrite your code to the new events API', DEBUG_DEVELOPER);
-
-    // This is a nasty hack that allows us to put all the legacy stuff into legacy storage,
-    // this way we may move all the legacy settings there too.
-    $manager = get_log_manager();
-    if (method_exists($manager, 'legacy_add_to_log')) {
-        $manager->legacy_add_to_log($courseid, $module, $action, $url, $info, $cm, $user);
-    }
-}
 
 function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
@@ -314,11 +301,13 @@ function exagames_load_quiz($quizid) {
 		print_error('quiznotfound');
 	}
 
-	// shuffle questions
-	if (!empty($quiz->shufflequestions)) {
+	
+	/*if ($quiz->shufflequestions) {
 		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
 		$quiz->questions = quiz_repaginate($quiz->questions, 0, true);
-	}
+	}*/
+
+	
 
 	// read questions accoridng to the sorting
 	$quiz->questions = array();
@@ -354,7 +343,8 @@ function exagames_load_quiz($quizid) {
 			$question->answers = swapshuffle_assoc($question->answers);
         }
 	}
-	
+	//echo "<pre>";
+	//var_dump($quiz);
 	return $quiz;
 }
 
@@ -476,7 +466,7 @@ function exagames_quiz_attempt($game, $grade)
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
 	
 	//preview made from teacher or higher has always attemptnum = 1, so this attemptnum is reserved
-	$context_course = context_course::instance($COURSE->id);
+	$context_course = get_context_instance(CONTEXT_COURSE, $COURSE->id);
 	$roles = get_user_roles($context_course, $USER->id);
 	
 	foreach($roles as $role){
@@ -525,17 +515,17 @@ function exagames_quiz_attempt($game, $grade)
 }
 
 		
-
+//http://localhost/mod/exagames/view.php?id=10&responses[5]=false&responses[6]=16
 function exagames_calc_grade_from_responses($quiz, $responses)
 {
 	$overallGrade = 0;
-	foreach ($quiz->questions as $question) {
 
+	foreach ($quiz->questions as $question) {
 		if (isset($responses[$question->id])) {
 			$response = $responses[$question->id];
-		
 			if ($question instanceof qtype_multichoice_single_question) {
 				$fraction = isset($question->answers[$response]) ? $question->answers[$response]->fraction : 0;
+			
 			} elseif ($question instanceof qtype_multichoice_multi_question) {
 				$response = explode(',', $response);
 
@@ -543,12 +533,14 @@ function exagames_calc_grade_from_responses($quiz, $responses)
 				foreach ($response as $ansid) {
 					if (isset($question->answers[$ansid]))
 						$fraction += $question->answers[$ansid]->fraction;
+					
 				}
 
 				$fraction = min(max(0, $fraction), 1.0);
 
 			} elseif ($question instanceof qtype_truefalse_question) {
 				$fraction = (int) ($question->rightanswer == (bool)$response);
+			
 			} else {
 				die('wrong question type');
 			}

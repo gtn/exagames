@@ -13,16 +13,21 @@ $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
 $a  = optional_param('a', 0, PARAM_INT);  // exagames ID
 $action  = optional_param('action', '', PARAM_TEXT);
 // from moodle 2.2 on we have to use optional_param_array, optional_param won't accept arrays
-$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_INT) : optional_param('responses', array(), PARAM_RAW);
-
+$out = array();
+ global $COURSE, $CFG, $DB, $USER;
+$img_files = array();
+$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW);
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
 		print_error("Course Module ID was incorrect");
 	}
 
+
+
 	if (! $course = $DB->get_record("course", array("id"=>$cm->course))) {
 		print_error("Course is misconfigured");
 	}
+
 
 	if (! $game = exagames_get_game_instance($cm->instance)) {
 		error("Game not found");
@@ -55,13 +60,13 @@ if ($action == 'translations') {
 	foreach ($strings as $string) {
 		$xmlResult->$string = exagames_get_string($string, 'quiz');
 	}
-	
+
 	$xmlResult->continue = exagames_get_string('continue');
 	$xmlResult->savingdata = exagames_get_string('savingdata');
 
 	$xmlResult->score = exagames_get_string('score', 'search');
 	$xmlResult->returntocourse = exagames_get_string('returntocourse', 'lesson');
-	
+
 	header('Content-Type: text/xml; charset=utf-8');
 	echo $xmlResult->asPrettyXml();
 
@@ -70,11 +75,13 @@ if ($action == 'translations') {
 
 if ($action == 'data') {
 	// flash handlers
-
+	$isguest = isguestuser();
+	
 	if (!isguestuser() && $responses) {
 		// save game responses
-
+		
 		// calc grade
+		
 		$grade = exagames_calc_grade_from_responses($quiz, $responses);
 		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
 		$attemptgrade = quiz_rescale_grade($grade, $quiz);
@@ -92,7 +99,7 @@ if ($action == 'data') {
 			<feedback>text</feedback>
 		</result>
 		*/
-		
+
 		require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
 
 		$xmlResult = Pro_SimpleXMLElement::create('result');
@@ -103,16 +110,28 @@ if ($action == 'data') {
 		));
 		// Todo: Feedback
 
-		$context = context_module::instance($cm->id);
+		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 		$xmlResult->feedback = quiz_feedback_for_grade($attemptgrade, $quiz, $context);
 
+		$json = json_encode($xmlResult);
+		$xmlArr = json_decode($json,TRUE);
+		
+		$scoreDb = new stdClass();
+		$scoreDb->userid = $USER->id;
+		$scoreDb->gameid = $game->id;
+		$scoreDb->gametype = $game->gametype;
+		$scoreDb->score = $xmlArr['score']['@attributes']['percent'];
+		$scoreDb->time = time();
+		
+		$DB->insert_record('exagames_scores', $scoreDb);
+		
 		header('Content-Type: text/xml; charset=utf-8');
 		echo $xmlResult->asPrettyXML();
 
 		exit;
 
 	} elseif (!isguestuser() && $game->hasHighscore && (($score = optional_param('score', -9999, PARAM_INT)) != -9999)) {
-	
+
 		$scoreDb = new stdClass();
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
@@ -121,9 +140,9 @@ if ($action == 'data') {
 		$scoreDb->time = time();
 
 		$DB->insert_record('exagames_scores', $scoreDb);
-		
+
 		echo 'ok=1';
-		
+
 		exit;
 	} else {
 		// output gamedata as xml for flash
@@ -145,7 +164,7 @@ if ($action == 'data') {
 		$xmlQuestions = $xmlQuiz->addChild('questions');
 
 		foreach ($quiz->questions as $question) {
-			
+
 			$xmlQuestion = $xmlQuestions->addChild('question');
 			$xmlQuestion->setAttributes(array(
 				'id' => $question->id,
@@ -162,8 +181,8 @@ if ($action == 'data') {
 				$xmlQuestion->config->display_order = $question->display_order;
 			}
 
-			$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
 
+			$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
 			if ($question->get_type_name() == 'multichoice') {
 
 				$xmlQuestion->setAttributes(array(
@@ -182,7 +201,7 @@ if ($action == 'data') {
 				$xmlQuestion->feedbacks->incorrect = exagames_html_to_text($question->incorrectfeedback);
 
 			} elseif ($question->get_type_name() == 'truefalse') {
-				
+
 				$xmlQuestion->setAttributes(array(
 					'correctanswer' => (int) $question->rightanswer
 				));
@@ -191,16 +210,16 @@ if ($action == 'data') {
 				$xmlQuestion->feedbacks->falsefeedback = exagames_html_to_text($question->falsefeedback);
 			}
 		}
-
 		header('Content-Type: text/xml; charset=utf-8');
+
 		echo $xmlQuiz->asXML();
 
 		exit;
 	}
 }
 
-$context = context_course::instance($game->course);
-if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
+$context = get_context_instance(CONTEXT_COURSE, $game->course);
+/*if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
 	$questionConfig = new stdClass();
 	$questionConfig->id = $questionId;
 	$questionConfig->content_url = $content_url;
@@ -215,23 +234,27 @@ if (has_capability('moodle/course:manageactivities', $context) && ($action == 'c
 
 	echo "ok=1";
 	exit;
-}
+}*/
 
 
-block_exagames_add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
+add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
 
 /// Print the page header
 $strexagamess = get_string("modulenameplural", "exagames");
 $strexagames  = get_string("modulename", "exagames");
 
-$PAGE->navbar->add($strexagamess, "index.php?id=$course->id", 'activity');
-$PAGE->navbar->add($game->name);
+$navlinks = array();
+$navlinks[] = array('name' => $strexagamess, 'link' => "index.php?id=$course->id", 'type' => 'activity');
+$navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' => 'activityinstance');
+
+//$navigation = build_navigation($navlinks);
 
 $PAGE->set_url($_SERVER['REQUEST_URI']);
 $PAGE->requires->js('/mod/exagames/js/swfobject.js', true);
+echo $OUTPUT->header();
 
-
-$context = context_course::instance($game->course);
+//$context = get_context_instance(CONTEXT_COURSE, $game->course);
+$context = context_module::instance($cm->id);
 /*
 if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_question_file') {
 	$questionId  = optional_param('questionid', '', PARAM_INT);
@@ -239,7 +262,7 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 	if (!isset($quiz->questions[$questionId])) {
 		print_error('wrong question');
 	}
-	
+
 	$question = $quiz->questions[$questionId];
 
 	require_once($CFG->dirroot.'/lib/formslib.php');
@@ -263,14 +286,14 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 	$draftitemid = file_get_submitted_draft_itemid('file');
 	file_prepare_draft_area($draftitemid, $context->id, 'mod_exagames', 'questions', $question->id);
 	$question->file = $draftitemid;
-	
+
 	if ($questionform->is_cancelled()) {
 		if ($question->content_url)
 			redirect(new moodle_url('/mod/exagames/view.php?action=configure_questions&id='.$id.'&questionid='.$question->id));
 		else
 			redirect(new moodle_url('/mod/exagames/view.php?action=configure_questions&id='.$id));
 	} else if ($formdata = $questionform->get_data()) {
-	
+
 		var_dump($formdata);
 
 		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
@@ -312,48 +335,90 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 		exagames_print_tabs($game, 'configure_questions');
 
 		$questionform->display();
-	
+
 		/// Finish the page
 		echo $OUTPUT->footer();
 	}
-	
+
 	exit;
 }
 
 */
+//print_header_simple(format_string($game->name), "", $navigation, "", "", true,
+			//  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
 
-$PAGE->set_heading($strexagamess.': '.$game->name);
-$PAGE->set_title($strexagamess.': '.$game->name);
+	//$moduleId = $DB->get_field('modules', 'id', array('name'=>'exagames'));
+	//$courseContextId = context_course::instance($COURSE->id)->id;
+	//$result = $DB->get_records('folder', array('course'=> $COURSE->id));
 
-echo $OUTPUT->header();
-// print_header_simple(format_string($game->name), "", $navigation, "", "", true,
-//			  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
 
+
+
+	$coursecontext = context_course::instance($COURSE->id);
+	$course_path = $DB->get_field('context', 'path', array('id'=>$coursecontext->id));
+	//echo $course_path;
+		//SELECT * FROM `mdl_context` WHERE `path` =  '/1/3/21%'
+	$context_paths = $DB->get_records_sql("SELECT * FROM mdl_context WHERE path LIKE '$course_path%'");
+	//var_dump($context_paths);
+	$ids = array();
+	foreach ($context_paths as $ctp) {
+		array_push($ids, $ctp->id);
+	}
+	$all_files = $DB->get_records_sql("SELECT * FROM mdl_files");
+	$path_array = array();
+	foreach ($all_files as $file) {
+		if(in_array($file->contextid, $ids)) {
+			if(substr($file->filename, -3) == 'jpg' || substr($file->filename, -3) == 'png' || substr($file->filename, -3) == 'gif') {
+				array_push($img_files, $CFG->wwwroot . '/pluginfile.php/' .  $file->contextid . '/' . $file->component . '/' . $file->filearea . '/' . $file->itemid . '/' . $file->filename);
+			}
+		}
+
+	}
+	//echo "SELECT * FROM mdl_files f JOIN mdl_context ctx ON f.contextid = ctx.id having f.contextid IN ($ids)";
+
+	//$fs = get_file_storage();
+	/*$files = $fs->get_area_files(, 'mod_folder', 'content');
+	//var_dump($files);
+	foreach ($files as $f) {
+    // $f is an instance of stored_file
+		$fName = $f->get_filename();
+		if(substr($fName, -3) == 'jpg' || substr($fName, -3) == 'png' || substr($fName, -3) == 'gif')
+	}*/
+	/*
 if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_questions') {
 
 	exagames_print_tabs($game, 'configure_questions');
-	
+
 	$questionId  = optional_param('questionid', '', PARAM_INT);
-	
+
 	if (isset($quiz->questions[$questionId])) {
 		$question = $quiz->questions[$questionId];
-		
+
 		$flashvars = array(
 			'save_url' => $_SERVER['REQUEST_URI'],
 			'back_url' => $_SERVER['PHP_SELF'].'?action=configure_questions&id='.$cm->id,
 			'content_url' => $question->content_url,
 			'tile_size' => $question->tile_size,
 			'difficulty' => $question->difficulty,
-			'display_order' => $question->display_order
+			'display_order' => $question->display_order,
+			'selectable_images' => $img_files
 		);
 
 		?>
+		 <script src="html5/js/jquery.min.js"></script>
+
 		<script type="text/javascript">
-			var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
+
+			var flashvars = <?php echo json_encode($flashvars) ?>;
 			var params = {};
 			var attributes = {};
-			swfobject.embedSWF(<?php echo json_encode($CFG->wwwroot.'/mod/exagames/swf/tiles_editor.swf'); ?>, "GameContent", "940", "535", "9.0.0", false, flashvars, params, attributes);
-		</script>
+			//swfobject.embedSWF(<?php echo json_encode($CFG->wwwroot.'/mod/exagames/swf/tiles_editor.swf'); ?>, "GameContent", "940", "535", "9.0.0", false, flashvars, params, attributes);
+			$(document).ready(function(){
+				$( "#GameContent" ).empty();
+				//$( "#GameContent" ).append('<iframe height="900" width= "1200" src="./html5/tiles_editor/tiles.html">Could not load iframe</iframe>');
+				$( "#GameContent" ).load('./html5/tiles_editor/tiles.html');
+			});
+	</script>
 		<div id="Game" style="width: 940px; margin: 0 auto;">
 			<div id="GameContent" style="width: 940px; margin: 0 auto;">
 				<a href="http://www.adobe.com/go/getflashplayer" style="display: block; padding: 40px; text-align: center;">
@@ -381,7 +446,7 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 	echo $OUTPUT->footer();
 	exit;
 }
-
+*/
 
 /*
 $globalTopScore = get_field_sql("SELECT MAX(score) FROM {$CFG->prefix}exagames_scores WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."'");
@@ -399,16 +464,37 @@ $flashvars = array(
 	'courseurl' => $CFG->wwwroot.'/course/view.php?id='.$course->id,
 	'translationsurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=translations'
 );
+$gametype = $game->gametype;
 
 ?>
+
+ <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>-->
+ <script src="html5/js/jquery.min.js"></script>
+ <script src="html5/js/phaser.js"></script>
+
 <script type="text/javascript">
-	var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
+	var flashvars = <?php echo json_encode($flashvars) ?>;
+	var gameType = <?php echo json_encode($gametype) ?>;
+	//var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
+	console.log(gameType);
 	var params = {};
 	var attributes = {};
-	swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
-</script>
-<div id="Game" style="width: 800px; margin: 0 auto;">
-	<div id="GameContent" style="width: 800px; margin: 0 auto;">
+	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
+	if(gameType == 'braingame') {
+		$(document).ready(function(){
+				$( "#GameContent" ).empty();
+				$( "#GameContent" ).load('./html5/braingame/braingame.html');
+		});
+	} else if (gameType == 'tiles') {
+		$(document).ready(function(){
+				$( "#GameContent" ).empty();
+				$( "#GameContent" ).load('./html5/blurrygame/blurrygame.html');
+		});
+	}
+
+	</script>
+<div id="Game" style="width: 1200px; margin: 0 auto;">
+	<div id="GameContent" style="width: 1200px; margin: 0 auto;">
 		<a href="http://www.adobe.com/go/getflashplayer" style="display: block; padding: 40px; text-align: center;">
 			<img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" />
 		</a>
@@ -425,21 +511,21 @@ else {
 	$pos2 = strpos($gameslab,'so.write("Adventure_Player");
 </script>
 </div>');
- 
+
  	$aplay_pos = strpos($gameslab,'Adventure_Player');
  	$jsbegin = strpos($gameslab,'<script type="text/javascript">',$aplay_pos);
  	$jsend = strpos($gameslab,'</script>',$jsbegin) + strlen('</script>');
- 	
+
  	echo '<script type="text/javascript" src="http://gamelabs.at/fileadmin/gamelabs/tmpl/js/swfobject.js"></script>';
  	echo '<div id="Adventure_Player" class="Adventure_Player"></div>';
 	$flashcontent = substr($gameslab,$jsbegin,$jsend-$jsbegin);
-	
+
 	$flashcontent = str_replace('new SWFObject("fileadmin/', 'new SWFObject("http://gamelabs.at/fileadmin/', $flashcontent);
 	//$flashcontent = str_replace('fileadmin/', 'http://gamelabs.at/fileadmin/', $flashcontent);
 	echo $flashcontent;
 */
 echo '
-<iframe src="'.$game->url.'&type=5" width="760" height="580" name="gamelabs.at">
+<iframe src="'.$game->url.'&type=5" width="740" height="520" name="gamelabs.at">
   <p>iframe is not working</p>
 </iframe>';
 }

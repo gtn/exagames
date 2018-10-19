@@ -1,0 +1,181 @@
+
+
+body {
+	font-family: Helvetica;
+}
+
+.button-corners {
+	border-radius:4px;
+}
+
+#mainContainer {
+	margin:0 auto;
+	width:100%;
+	height: 600px;
+	border-radius:5px;
+//	background-color:#2565A5;
+}
+
+#fileLink {
+	margin:20px;
+}
+
+#difficultyLabel {
+	font-size:20px;
+}
+
+#imageContainer {
+	margin:5px;
+	display:inline-block;
+	float:left;
+}
+
+#imageContainerRow {
+	height:340px;
+	margin: 20px 120px 0 0px;
+}
+
+#quizImage {
+	max-height:300px;
+	max-width: 530px;
+	position:absolute;
+}
+
+#squareContainer {
+	position:absolute;
+	float:left;
+	width: 100%;
+  height: 100%;
+}
+
+#difficultyForm {
+	margin-top:50%;
+	color: black;
+    font-size: 18px;
+}
+
+#saveButton {
+	height: 60px;
+    width: 180px;
+}
+
+.button-size {
+	width:130px;
+}
+
+#loadFile {
+	width: 200px;
+    height: 49px;
+    margin-top: 2%;
+    margin-left: 4%;
+}
+
+#saveButtonRow {
+	padding:10px;
+}
+
+#changeBackgroundContainer {
+				background-color: #F9F9F9;
+				opacity: 0.98;
+				margin: 0 auto;
+				width: 95%;
+			 	padding: 40px;
+				text-align: center;
+				height: 95%;
+				margin-top: -530px;
+}
+
+			#confirmBackImageContainer {
+				justify-content:center;
+				padding:30px;
+			}
+
+			#changeToImage {
+				max-width: inherit;
+			}
+
+button#confirmBackgroundImageButton {
+    height: 50px;
+    font-size: 20px;
+    width: 300px;
+}
+
+#saveText {
+	color: white;
+    margin: 15px;
+    font-size: 20px;
+    padding: 10px;
+    white-space: nowrap;
+    background-color:black;
+}
+
+#configurationState {
+		color: white;
+    margin: 15px;
+    font-size: 20px;
+    padding: 10px;
+    white-space: nowrap;
+}
+
+select#selectFile {
+    margin-bottom: 20px;
+}
+
+
+.buttons-margin-auto {
+	margin:0 auto;
+}
+
+.padding-button {
+	padding:5px;
+}
+
+.buttons {
+	margin:0 auto;
+}
+
+.buttonRow {
+	padding:10px;
+}
+
+
+.button-float-right {
+	float:right;
+}
+
+
+
+.blurry-square {
+	background-color:#28292b;
+	float:left;
+	display:block;
+	border: 1px solid #2565A5;
+	opacity: 0.3;
+}
+
+.arrow-right {
+			  width: 0;
+			  height: 0;
+			  border-top: 40px solid transparent;
+			  border-bottom: 40px solid transparent;
+			  margin-top:400%;
+			  border-left: 40px solid #0062cc;
+			}
+
+			.arrow-left {
+			  width: 0;
+			  height: 0;
+			  margin-top:400%;
+			  border-top: 40px solid transparent;
+			  border-bottom: 40px solid transparent;
+
+			  border-right:40px solid #0062cc;
+			}
+
+			.arrow-right:active {
+				border-left: 40px solid black;
+			}
+
+			.arrow-left:active {
+				border-right: 40px solid black;
+			}

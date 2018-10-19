@@ -29,10 +29,20 @@ $string['modulename'] = 'Exabis Games';
 $string['modulenameplural'] = 'Exabis Games';
 $string['pluginadministration'] = 'Exabis Games administration';
 
+$string['question'] = 'Question: ';
 $string['configure_quiz'] = 'Configure Quiz';
 $string['configure_questions'] = 'Configure Questions';
 $string['question_configured'] = 'Question configured';
 $string['question_not_configured'] = 'Question not configured';
+$string['modulename_help'] = 'The exabis games module imports quizzes of the type "multiple choice" and "true/false" to games to support the execution of these tasks with animations within a game context.
+
+There are 2 games to choose from currently:
+
+* BrainGame: The goal is to answer questions correctly and help the scientist to reach his goal of flying into space!
+
+* Exaclicks: As time goes by, an image becomes more and more visible and supports the student on picking the correct answers to the questions.
+
+NOTE: The Exaclicks game type is configured within the exabis game activity. Any Images uploaded to this course (as resources or inside folders) can be used for the configuration of the questions.';
 
 // Edit Module Instance
 $string['exagamesintro'] = 'Intro';
@@ -41,12 +51,11 @@ $string['noquizzesincourse'] = 'Please create {$a->linkTag}a new quiz</a> first,
 $string['savingdata'] = 'Saving data...';
 $string['gametype'] = 'Game-Type';
 $string['quizid'] = 'Quiz';
-$string['gametype_help'] = 'Exabis-Games currently consist of three different games: 
+$string['gametype_help'] = 'Exabis-Games beinhaltet derzeit 2 Spiele:
 
-* braingame - here Moodle-Tests are enhanced with a funny Flash-animation. The goal is to catapult the scientist into outer space - by not answering all questions correctly he only falls into the water!
-* exaclick uncovers a hidden picture/clip for the player. If the "stop"-button is clicked - time stops and a Moodle-quiz-question has to be answered. This question has to be configured at the beginning by the trainer with the Flash-editor in the "configure questions"-tab.<br /><br />ATTENTION: the game only accepts links to files that are accessible for students within Moodle, i.e. from within a course-folder. the picture/clip has to be uploaded before question-configuration.
-* gamelabs.at - this Opensource online-adventure-creator enables you to create small adventures based upon any subject. Games that have been created (by a trainer or a student) can be embedded into Moodle here.';
-$string['quizid_help'] = 'choose the quiz that the braingame or exaclick should be based upon';
+* braingame - Hier wird die Durchführung von Tests mit Flash-Animationen begleitet. Ziel ist es, den Wissenschaftler durch die korrekten Antworten dabei zu helfen, ins All zu fliegen!
+* exaclick - Hier wird ein Bild mit der Zeit sichtbarer, welches für die Beantwortung der jeweiligen Frage bedeutend ist. Bei Klick auf eine der Lösungsalternativen stoppt die Zeit und die Antwort wird ausgewertet. Die Fragen müssen für dieses Spiel im Vorhinein im "Fragen konfigurieren"-tab konfiguriert werden.<br /><br />HINWEIS: Im Konfigurator werden nur jene Bilder (jpg, png, gif) gelistet, welche im selben Kurs als Ressource oder in einem Ordner abgelegt sind, in der auch die Exagames-Aktivität statt findet.';
+$string['quizid_help'] = 'Wählen Sie ein Quiz aus, welches für diese Spiel-Instanz von exagames verwendet werden soll.';
 $string['url'] = 'Url';
 $string['url_help'] = 'paste your gamelabs.at-adventure game here to embed it.<br /><br />this option will only work with a gamelabs-game-link and does not need Moodle-questions.';
 // Games

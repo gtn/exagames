@@ -1,0 +1,107 @@
+input {
+	height:20px;
+	width:20px;
+}
+
+#region-main > .card {
+	min-height: 50rem;
+}
+
+#contentContainer {
+	zoom:1.1;
+}
+
+#html-container {
+	position:absolute;
+	height:600px;
+	width:800px;
+}
+
+#brainCanvas{
+	position:absolute;
+	height: 600px;
+	width:800px;
+}
+
+#startGame {
+	width:95px;
+	height:49px;
+	    margin-top: 45%;
+    margin-left: 70%;
+}
+
+#startGame:hover {
+	transform:scale(1.1);
+	cursor:pointer;
+}
+
+#question-field{
+	margin-top:100px;
+	height:400px;
+	width:350px;
+	margin-left:40px;
+}
+
+#loginButton {
+	float:right;
+}
+
+#pQuestion {
+	font-family: "Comic Sans MS", cursive, sans-serifsans-serif;
+    font-size: 30px;
+}
+
+li.alternative-inline {
+	display:inline;
+}
+
+.answerContainer {
+	margin:30px;
+}
+
+.alternative {
+	position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+  list-style: none;
+  margin: .5em 0;
+  padding: .4em 1.2em;
+  background: #ddd;
+  overflow: hidden;
+  -webkit-border-radius: 0.25em;
+  -moz-border-radius: 0.25em;
+  border-radius: 0.25em;
+  box-shadow: 0 0.1em 0 rgba(0,0,0, 0.3);
+	font-family: "Comic Sans MS", cursive, sans-serifsans-serif;
+	font-size:20px;
+  transition: -webkit-transform 0.5s ease-in-out, width 0.5s ease-in-out;
+  transition: transform 0.5s ease-in-out, width 0.5s ease-in-out;
+}
+
+#c-question {
+	    margin: 0.888888889em;
+    padding: 4px;
+    font-size: 1.125em;
+    font-family: "arial";
+}
+
+.alternative-hover:hover {
+  background: #edd6e9;
+}
+.alternative-reveal-wrong {
+	  background: #f7d0d0;
+	  color: #b71c1c;
+}
+
+.alternative-reveal-correct {
+	background: #9dd8bb;
+    color: #255c41;
+}
+
+.wrong-image,
+.correct-image {
+	height:16px;
+	width:16px;
+	background-size: 16px 16px;
+	float:right;
+}

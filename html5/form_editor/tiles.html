@@ -1,0 +1,289 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="tiles_editor.css">
+ 	 <script src="../js/jquery.min.js"></script>
+<link rel="stylesheet" href="../css/bootstrap.min.css">
+
+</head>
+
+<body>
+	<div id="mainContainer">
+		<div class="container">
+			<div class="row">
+				<span id="configurationState"></span>
+			</div>
+			<div class="row">
+				<div id="imageContainerRow" class="col-7">
+						<img id="quizImage"/>
+						<div id="squareContainer"></div>
+				</div>
+				<div class="col-3">
+					<form id="difficultyForm" action="">
+							<legend id="difficultyLabel">Geschiwndigkeit:</legend>
+							<input type="radio" name="difficulty" value="easy"> Langsam </br>
+							<input type="radio" name="difficulty" value="intermediate"> Mittel </br>
+							<input type="radio" name="difficulty" value="hard"> Schnell </br>
+					</form>
+				</div>
+			</div>
+			<div class="row buttons-margin-auto">
+				<div class="col-3">
+					<div class="row padding-button">
+					<button id="randomizeButton" class="btn btn-dark buttons button-corners button-size">Randomize</button>
+					</div>
+					<div class="row">
+						<button id="simulateButton" class="btn btn-dark buttons button-corners button-size">Simulieren</button>
+					</div>
+					<div class="row padding-button">
+						<button id="resetButton" class="btn btn-dark buttons button-corners button-size">Reset</button>
+					</div>
+				</div>
+				<div class="col-3">
+					<div id="saveButtonRow" class="row">
+						<button id="saveButton" class="btn buttons button-corners">Speichern</button>
+						<span id="saveText" style="display:none;">Konfiguration wurde gespeichert!</span>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		const SQUARE_MAX = 100;
+
+//		var imgPaths = flashvars.selectable_images;
+		var clickedTiles = [];
+		let url_string = window.location.href;
+		let url = new URL(url_string);
+		var fp_ref = window.parent.a(window.frameElement.id);
+			var wasConfigured = false;
+		var flashvars = {
+			content_url: url.searchParams.get("content_url"),
+			display_order: url.searchParams.get("display_order"),
+			difficulty: url.searchParams.get("difficulty"),
+		};
+		var fmImagePath;
+		$(document).ready(function() {
+			if(flashvars.content_url != null && flashvars.display_order != null && flashvars.difficulty != null) {
+				fmImagePath = flashvars.content_url;
+				clickedTiles = flashvars.display_order.split(",");
+				wasConfigured = true;
+				console.log(flashvars.difficulty);
+			 	let inputElems = $('input');
+
+			 for(let i = 0; i < inputElems.length; i++) {
+				if($(inputElems[i])[0].attributes[2].nodeValue == flashvars.difficulty) {
+						$(inputElems[i]).prop('checked', true);
+				};
+			 }
+			 	showConfiguredStatus(1);
+				loadFile();
+			} else {
+				showConfiguredStatus(0);
+			}
+
+			$(fp_ref).bind("DOMSubtreeModified", function() {
+				fmImagePath = window.parent.getFMImage(window.frameElement.id);
+				showConfiguredStatus(2);
+				loadFile();
+			});
+
+
+		});
+			function loadFile() {
+
+						$('#squareContainer').empty();
+						var fileLink = fmImagePath;
+						$('#quizImage').attr('src', fileLink);
+							var img = document.getElementById('quizImage');
+							img.onload = function() {
+								getImageSize($('#quizImage'), function(imgWidth, imgHeight) {
+									$('#squareContainer').css('width', imgWidth+ 'px');
+									$('#squareContainer').css('height', imgHeight + 'px');
+									//$('#imageContainer').css('width', imgWidth+ 'px');
+									var squares = [];
+									for(var i = 0; i < SQUARE_MAX; i++) {
+										var square = $('<div>', {
+											'class': 'blurry-square',
+											'id': 'square-nr-' + i,
+											height: imgHeight/10,
+											width: imgWidth/10
+										});
+										square.appendTo('#squareContainer');
+										squares.push(square);
+									}
+									$('.blurry-square').on('click', function(e) {
+										if($(e.target).css('opacity') == 0.3) {
+											var clickedId = e.currentTarget.attributes[1].nodeValue;
+											clickedTiles.push(clickedId.substring(10, clickedId.length));
+											$('#' + clickedId).css('opacity', '0.95');
+										}
+									});
+									//on existing image, load square config from db
+										if (wasConfigured) {
+											wasConfigured = false;
+											cb_setSquaresOpac();
+										}
+								});
+
+
+							};
+
+		}
+
+		function getImageSize(img, callback) {
+	    var $img = $(img);
+
+	    var wait = setInterval(function() {
+	        var w = $img[0].clientWidth,
+	            h = $img[0].clientHeight;
+	        if (w && h) {
+	            clearInterval(wait);
+	            callback.apply(this, [w, h]);
+	        }
+	    }, 30);
+		}
+
+		$('#simulateButton').on('click', function() {
+			let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
+			if(actRadioVal == undefined) {
+				showStatusText("Schwierigkeitsgrad muss für Simulation festgelegt sein!");
+				return;
+			}
+			if(clickedTiles.length > 2) {
+				$('#mainContainer').css('pointer-events', 'none');
+				let sim_squares = clickedTiles.slice(0);;
+				switch(actRadioVal) {
+						case 'easy':
+							var difficultyInterval = 300;
+							break;
+						case 'intermediate':
+							var difficultyInterval = 200;
+							break;
+						case 'hard':
+							var difficultyInterval = 100;
+							break;
+				}
+
+				var blurInterval = setInterval(function() {
+					$('#square-nr-' + sim_squares[0]).css('opacity', '0.3');
+					sim_squares.shift();
+					if(sim_squares.length === 0) {
+						clearInterval(blurInterval);
+						console.log(clickedTiles);
+
+						setTimeout(function() {
+							for(let j = 0; j < clickedTiles.length; j++)
+								$('#square-nr-' + clickedTiles[j]).css('opacity', '0.95');
+							$('#mainContainer').css('pointer-events', '');
+						}, 200);
+					}
+				}, difficultyInterval);
+
+			}
+		});
+
+		$('#randomizeButton').on('click', function() {
+			showConfiguredStatus(2);
+			let square_storage = [];
+			for(let i = 0; i < SQUARE_MAX; i++) {
+				square_storage.push(i);
+			}
+			clickedTiles = []
+			for(let j = 0; j < SQUARE_MAX; j++) {
+				var rand = square_storage[Math.floor(Math.random() * square_storage.length)];
+				square_storage.splice(square_storage.indexOf(rand), 1);
+				$('#square-nr-' + rand).css('opacity', '0.95');
+				clickedTiles.push(rand);
+			}
+
+		});
+
+		$('input:radio').on('change', function() {
+			showConfiguredStatus(2);
+		});
+
+
+		$('#resetButton').on('click', function() {
+			showConfiguredStatus(2);
+			console.log(clickedTiles);
+			for(var i = 0; i < clickedTiles.length; i++)
+				$('#square-nr-' + clickedTiles[i]).css('opacity', '0.3');
+			clickedTiles = [];
+		});
+
+		$('#saveButton').on('click', saveConfiguration);
+
+		function cb_setSquaresOpac() {
+			for(let i = 0; i < clickedTiles.length; i++)
+				$('#square-nr-' + clickedTiles[i]).css('opacity', '0.95');
+		}
+
+		var statusTextInt = undefined;
+		function showStatusText(str) {
+			if(statusTextInt != undefined)
+				clearTimeout(statusTextInt);
+			$('#saveText').css('display', 'none');
+			$('#saveText').html(str);
+			$('#saveText').fadeIn();
+			statusTextInt = setTimeout(function() {
+				$('#saveText').fadeOut();
+			}, 5000);
+
+		}
+		function showConfiguredStatus(configuredStatus) {
+			switch(configuredStatus) {
+				case 1:
+						$('#configurationState').css('background-color', 'green');
+						$('#configurationState').html('Konfiguration gespeichert');
+						break;
+				case 0:
+						$('#configurationState').css('background-color', '#b40202');
+						$('#configurationState').html('Keine Konfiguration gespeichert');
+						break;
+				case 2:
+						$('#configurationState').css('background-color', 'orange');
+						$('#configurationState').html('In Bearbeitung (Nicht gespeichert)');
+						break;
+			}
+		}
+
+		function saveConfiguration() {
+			if(clickedTiles.length < 100) {
+				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!");
+			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
+				showStatusText("Fehler: Kein Schwierigkeitsgrad gewählt!");
+			} else {
+				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
+				let filepath = $('#quizImage').attr('src');
+				let ajaxCall = {
+					url: window.parent.getWindowLoc(),
+					method: "GET",
+					data: {
+						func: 'configure_question',
+						display_order: clickedTiles.join(),
+						content_url: filepath,
+						difficulty: actRadioVal,
+						questionid: url.searchParams.get("question_id"),
+					},
+					success: function(data, status, xhr) {
+						showStatusText("Konfiguration wurde gespeichert!");
+						showConfiguredStatus(1);
+					},
+					error: function(xhr, status, error) {
+						console.log("error");
+						alert("Error @ saving configuration.");
+					}
+				};
+				$.ajax(ajaxCall);
+			}
+
+		}
+
+	</script>
+</body>
+
+</html>
