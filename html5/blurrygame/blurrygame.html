@@ -334,10 +334,10 @@
 				if(e.currentTarget.attributes[1].value.includes("alternative-correct")) {
 					$(e.currentTarget).removeClass('alternative-hover');
 					score += (1/questions.length)*questions[round].answers[answerId].fraction;
-					$('.correct-image').css('background-image', 'url(assets/checked.png)');
+					$('.correct-image').css('background-image', 'url(html5/blurrygame/assets/checked.png)');
 				} else {
 					lifeCount--;
-					$('#' + e.currentTarget.attributes[0].value).find('div').css('background-image', 'url(assets/cancel.png)');
+					$('#' + e.currentTarget.attributes[0].value).find('div').css('background-image', 'url(html5/blurrygame/assets/cancel.png)');
 				}
 				selectedAlternativeAnimation();
 				round++;
@@ -380,7 +380,7 @@
 							lifeCount--;
 							file = "cancel.png";
 						}
-						$('#' + box.node[0].id).find('div').css('background-image', 'url(assets/' + file + ')');
+						$('#' + box.node[0].id).find('div').css('background-image', 'url(html5/blurrygame/assets/' + file + ')');
 					}
 				}
 				score += (1/questions.length)*tempScore;
@@ -435,7 +435,7 @@
 					//throw new Error("Game over: No hearts left. :(");
 					$('#heart-container').append('<span id="livesText">Lives: </span>');
 				for(var i = 0; i < lifeCount; i++) {
-					$('#heart-container').append('<img class="heart-img pulse" src="assets/herz2.png"/>');
+					$('#heart-container').append('<img class="heart-img pulse" src="html5/blurrygame/assets/herz2.png"/>');
 				}
 			}
 

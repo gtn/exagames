@@ -351,29 +351,6 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 	//$courseContextId = context_course::instance($COURSE->id)->id;
 	//$result = $DB->get_records('folder', array('course'=> $COURSE->id));
 
-
-
-
-	$coursecontext = context_course::instance($COURSE->id);
-	$course_path = $DB->get_field('context', 'path', array('id'=>$coursecontext->id));
-	//echo $course_path;
-		//SELECT * FROM `mdl_context` WHERE `path` =  '/1/3/21%'
-	$context_paths = $DB->get_records_sql("SELECT * FROM mdl_context WHERE path LIKE '$course_path%'");
-	//var_dump($context_paths);
-	$ids = array();
-	foreach ($context_paths as $ctp) {
-		array_push($ids, $ctp->id);
-	}
-	$all_files = $DB->get_records_sql("SELECT * FROM mdl_files");
-	$path_array = array();
-	foreach ($all_files as $file) {
-		if(in_array($file->contextid, $ids)) {
-			if(substr($file->filename, -3) == 'jpg' || substr($file->filename, -3) == 'png' || substr($file->filename, -3) == 'gif') {
-				array_push($img_files, $CFG->wwwroot . '/pluginfile.php/' .  $file->contextid . '/' . $file->component . '/' . $file->filearea . '/' . $file->itemid . '/' . $file->filename);
-			}
-		}
-
-	}
 	//echo "SELECT * FROM mdl_files f JOIN mdl_context ctx ON f.contextid = ctx.id having f.contextid IN ($ids)";
 
 	//$fs = get_file_storage();
