@@ -165,8 +165,11 @@ class mod_exagames_mod_form extends moodleform_mod {
 
 
 		?>
-		<script src="<?php echo json_decode($CFG->wwwroot); ?>/mod/exagames/html5/js/jquery.min.js"></script>
-
+		<!--<script src="/mod/exagames/html5/js/jquery.min.js"></script>-->
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
 		<script>
 		let quizzes = <?php echo json_encode($quizzes_questionNames); ?>;
 

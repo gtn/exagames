@@ -156,13 +156,14 @@
 					}
 					return;
 				}
-				timeScore += curPoints;
+
 				questionCnt++;
 				removeStartButton();
 				resetTimepoints();
 				resetHeartContainer();
 				resetImageContainer();
 				resetQuestionField();
+                setScreenDisabled(false);
 
 
 				startButtonCnt++;
@@ -173,9 +174,9 @@
 				img.onload = function() {
 					if($('#contentWrapper').css('display') == 'none' || $('#imageContainer').children().css('display') == 'none')
 						cb_showOnFinish();
-					var imgWidth = $("#quizImage").width();
-					var imgHeight =  $("#quizImage").height();
-					$('#squareContainer').css('width', imgWidth+ 'px');
+					var imgWidth = parseFloat($("#quizImage").width())+2;
+					var imgHeight =  parseFloat($("#quizImage").height())+2;
+					$('#squareContainer').css('width', imgWidth + 'px');
 					$('#squareContainer').css('height', imgHeight + 'px');
 					$('#imageContainer').css('width', imgWidth+ 'px');
 
@@ -184,8 +185,8 @@
 						var square = $('<div>', {
 						'class': 'blurry-square',
 						'id': 'square-nr-' + i,
-						'height': imgHeight/10,
-						'width': imgWidth/10
+						'height': imgHeight/10.0,
+						'width': imgWidth/10.0
 						});
 						square.appendTo('#squareContainer');
 					}
@@ -211,7 +212,7 @@
 									$('#' + squares[0]).css('opacity', '0');
 									squares.shift();
 									curPoints--;
-									$('#headerPoints').html('Punkte: ' + curPoints);
+									$('#headerPoints').html('Zeit: ' + curPoints);
 									if(squares.length === 0) {
 										clearInterval(blurInterval);
 									}
@@ -237,14 +238,14 @@
 
 			function resetTimepoints() {
 				curPoints = 100;
-				$('#headerPoints').html('Punkte: ' + curPoints);
+				$('#headerPoints').html('Zeit: ' + curPoints);
 				$('#headerQuestionCounter').html('Frage ' + questionCnt + '/' + questions.length);
 
 			}
 
 			function showScore(mdl_score) {
 				$('#contentWrapper').css('opacity', 0.15);
-				$('#GameContent').append('<div id="scoreContainer"> <h3>Sie haben ' + ((mdl_score*100).toFixed(2)) + '% der Punkte im Quiz in ' + timeScore + ' von ' + (questions.length * 100) + ' Zeitpunkten erreicht!</h3> </div>');
+				$('#GameContent').append('<div id="scoreContainer"> <h3>Sie haben ' + ((mdl_score*100).toFixed(2)) + '% der Quiz-Punkte in ' + (questions.length*100 - Number(timeScore)) + ' von ' + questions.length*100 + ' Zeiteinheiten im Quiz erreicht!</h3><button class="restart-button" onClick="window.location.reload();">Erneut spielen</button> </div>');
 			}
 
 			function showGameOver() {
@@ -285,6 +286,9 @@
 					domAppend += '</ul>';
 					$('#question-field').append(domAppend);
 					$('.alternative').click(function(e) {
+                        	setScreenDisabled(true);
+							timeScore += curPoints;
+							console.log("Added " + curPoints);
 							clearInterval(blurInterval);
 							blurInterval = undefined;
 							handleAnswer(e, "single-choice");
@@ -302,6 +306,9 @@
 					$('#question-field').append(domAppend);
 					$('#question-field').append('<button id="loginButton" class="btn btn-dark">Weiter</button>');
 					$('#loginButton').click(function(e) {
+							setScreenDisabled(true);
+							timeScore += curPoints;
+							console.log("Added " + curPoints);
 							clearInterval(blurInterval);
 							blurInterval = undefined;
 							handleAnswer(e, "multiple-choice");
@@ -358,7 +365,6 @@
 				var tempScore = 0;
 				var curAnswerIds = "";
 				var parser = new DOMParser;
-				console.log(questions[round].answers);
 				for(var i = 0; i < checkedBoxes.length; i++) {
 					var box = checkedBoxes[i];
 
@@ -384,7 +390,7 @@
 					}
 				}
 				score += (1/questions.length)*tempScore;
-				answers += "&responses[" + questions[round].id + "]=" + curAnswerIds;
+                answers += "&responses[" + questions[round].id + "]=" + curAnswerIds;
 				selectedAlternativeAnimation();
 				round++;
 				if(round == questions.length) {
@@ -463,6 +469,14 @@
 					}
 				});
 			}
+
+            function setScreenDisabled(doDisable) {
+                let pointerEvents = doDisable ? "none":"";
+
+
+                $('#Game #GameContent *').css('pointer-events', pointerEvents);
+
+            }
 
 
 

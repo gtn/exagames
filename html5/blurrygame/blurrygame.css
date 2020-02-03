@@ -73,7 +73,7 @@ input {
 	width:300px;
 }
 
-.start-button {
+.start-button, .restart-button {
 	border-radius:4px;
 	margin:5px;
 	height:40px;
@@ -154,8 +154,7 @@ li.alternative-inline {
 	float:left;
 	border: 1px solid #2565A5;
 	display:block;
-	height:10%;
-	width:10%;
+
 }
 
 .heart-img {
@@ -185,13 +184,17 @@ li.alternative-inline {
 
 div#scoreContainer {
 	background-color: #2565A5;
-    width: 800px;
-    height: 400px;
-    position: absolute;
-    top: 120px;
-    margin-left: 190px;
-    border: 1px solid #2564A5;
-    border-radius: 15px;
+	width: 800px;
+	height: 400px;
+	position: absolute;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+	top: 120px;
+	margin-left: 190px;
+	border: 1px solid #2564A5;
+	border-radius: 15px;
 }
 
 #scoreContainer h3 {

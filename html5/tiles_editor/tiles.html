@@ -148,7 +148,7 @@
 		$('#simulateButton').on('click', function() {
 			let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
 			if(actRadioVal == undefined) {
-				showStatusText("Schwierigkeitsgrad muss für Simulation festgelegt sein!");
+				showStatusText("Schwierigkeitsgrad muss für Simulation festgelegt sein!", orange);
 				return;
 			}
 			if(clickedTiles.length > 2) {
@@ -220,11 +220,13 @@
 		}
 
 		var statusTextInt = undefined;
-		function showStatusText(str) {
+		function showStatusText(str, colorStr) {
 			if(statusTextInt != undefined)
 				clearTimeout(statusTextInt);
 			$('#saveText').css('display', 'none');
-			$('#saveText').html(str);
+			debugger
+            $('#saveText').css('background-color', colorStr);
+            $('#saveText').html(str);
 			$('#saveText').fadeIn();
 			statusTextInt = setTimeout(function() {
 				$('#saveText').fadeOut();
@@ -234,9 +236,9 @@
 
 		function saveConfiguration() {
 			if(clickedTiles.length < 100) {
-				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!");
+				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!", "darkred");
 			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
-				showStatusText("Fehler: Kein Schwierigkeitsgrad gewählt!");
+				showStatusText("Fehler: Kein Schwierigkeitsgrad (langssam, mittel oder schnell) gewählt!", "darkred");
 			} else {
 				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
 				console.log(actRadioVal);
@@ -250,7 +252,7 @@
 						difficulty: actRadioVal
 					},
 					success: function(data, status, xhr) {
-						showStatusText("Konfiguration wurde gespeichert!");
+						showStatusText("Konfiguration wurde gespeichert!", "green");
 					},
 					error: function(xhr, status, error) {
 						console.log("error");

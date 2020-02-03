@@ -8,7 +8,8 @@ input {
 }
 
 #contentContainer {
-	zoom:1.1;
+	position:relative;
+	height:800px;
 }
 
 #html-container {
