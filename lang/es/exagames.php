@@ -71,3 +71,13 @@ $string['brain_istrue'] = 'Verdadero';
 $string['brain_isfalse'] = 'Falso';
 $string['brain_noquestions'] = "Aun no se ha configurado ninguna pregunta!";
 $string['brain_continue'] = "Aceptar";
+
+$string['tiles_difficultyLabel'] = 'Fade';
+$string['tiles_difficultyLabel_easy'] = 'Slow';
+$string['tiles_difficultyLabel_medium'] = 'Average';
+$string['tiles_difficultyLabel_hard'] = 'Fast';
+$string['tiles_randomizeButton'] = 'Randomize';
+$string['tiles_simulateButton'] = 'Simulate';
+$string['tiles_resetButton'] = 'Reset';
+$string['tiles_saveButton'] = 'Save';
+$string['tiles_saveText'] = 'Configuration saved!';

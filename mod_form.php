@@ -38,6 +38,10 @@ class mod_exagames_mod_form extends moodleform_mod {
 
 
 //-------------------------------------------------------------------------------
+$stringman = get_string_manager();
+$strings = $stringman->load_component_strings('mod_exagames', $CFG->lang);
+
+$PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
 
 
     /// Adding the "general" fieldset, where all the common settings are showed
@@ -142,7 +146,7 @@ class mod_exagames_mod_form extends moodleform_mod {
 
 					$tilesEditor[] = $mform->createElement(html, '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
-												<iframe id="editorframe-' . $quizKey . '-quest-' . $questKey . '" frameborder="0" style="height:600px;width:940px" src="' . $CFG->wwwroot . '/mod/exagames/html5/form_editor/tiles.html' . $urlParams . '"></iframe></br>
+												<iframe class="editor_frames" id="editorframe-' . $quizKey . '-quest-' . $questKey . '" frameborder="0" style="height:600px;width:940px" src="' . $CFG->wwwroot . '/mod/exagames/html5/form_editor/tiles.html' . $urlParams . '"></iframe></br>
 											</div>');
 					$tilesEditor[] =	$mform->createElement('filemanager', 'attachments', get_string('attachment', 'exagames'), null,
 													array('subdirs' => 0, 'maxbytes' => $maxbytes, 'areamaxbytes' => 10485760, 'maxfiles' => 1,
@@ -171,15 +175,37 @@ class mod_exagames_mod_form extends moodleform_mod {
   integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
   crossorigin="anonymous"></script>
 		<script>
+		
+		$(function(){
+    $('.editor_frames').on('load', function(){
+			$("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'mod_exagames'); ?>");
+			$("iframe").contents().find('#saveButton').html("<?php echo get_string('tiles_saveButton', 'mod_exagames'); ?>");
+			$("iframe").contents().find('#randomizeButton').html("<?php echo get_string('tiles_randomizeButton', 'mod_exagames'); ?>");
+			$("iframe").contents().find('#simulateButton').html("<?php echo get_string('tiles_simulateButton', 'mod_exagames'); ?>");
+			$("iframe").contents().find('#saveText').html("<?php echo get_string('tiles_saveText', 'mod_exagames'); ?>");
+			$("iframe").contents().find('#resetButton').html("<?php echo get_string('tiles_resetButton', 'mod_exagames'); ?>");
+			$("iframe").contents().find("#difficultyForm input[value='easy']")
+				.next()
+				.html("<?php echo get_string('tiles_difficultyLabel_easy', 'mod_exagames'); ?>");
+			$("iframe").contents().find("#difficultyForm input[value='intermediate']")
+				.next()
+				.html("<?php echo get_string('tiles_difficultyLabel_medium', 'mod_exagames'); ?>");
+			$("iframe").contents().find("#difficultyForm input[value='hard']")
+				.next()
+				.html("<?php echo get_string('tiles_difficultyLabel_hard', 'mod_exagames'); ?>");
+$("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'mod_exagames'); ?>");});
+        
+  
+});
+
 		let quizzes = <?php echo json_encode($quizzes_questionNames); ?>;
 
 		let url_string = window.location.href;
 		let url = new URL(url_string);
 		var cur_quizid = url.searchParams.get("quizId");
 		var loc = <?php echo json_encode($url); ?>;
-
+		
 		$(document).ready(function() {
-
 
 
 			handleGameTypeParam();
@@ -292,7 +318,6 @@ class mod_exagames_mod_form extends moodleform_mod {
 			$questionConfig->tile_size = optional_param('tile_size', '', PARAM_TEXT);
 			$questionConfig->difficulty = optional_param('difficulty', '', PARAM_TEXT);
 			$questionConfig->display_order = optional_param('display_order', '', PARAM_TEXT);
-			var_dump($questionConfig);
 
 			if (!$DB->record_exists('exagames_question', array('id'=>$questionId))) {
 				$DB->Execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");

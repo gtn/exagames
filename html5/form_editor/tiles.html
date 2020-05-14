@@ -20,29 +20,29 @@
 				</div>
 				<div class="col-3">
 					<form id="difficultyForm" action="">
-							<legend id="difficultyLabel">Geschiwndigkeit:</legend>
-							<input type="radio" name="difficulty" value="easy"> Langsam </br>
-							<input type="radio" name="difficulty" value="intermediate"> Mittel </br>
-							<input type="radio" name="difficulty" value="hard"> Schnell </br>
+							<legend id="difficultyLabel"></legend>
+							<input type="radio" name="difficulty" value="easy"> <span>Langsam</span> </br>
+							<input type="radio" name="difficulty" value="intermediate"> <span>Mittel</span></br>
+							<input type="radio" name="difficulty" value="hard"> <span>Schnell</span> </br>
 					</form>
 				</div>
 			</div>
 			<div class="row buttons-margin-auto">
 				<div class="col-3">
 					<div class="row padding-button">
-					<button id="randomizeButton" class="btn btn-dark buttons button-corners button-size">Randomize</button>
+					<button id="randomizeButton" class="btn btn-dark buttons button-corners button-size"></button>
 					</div>
 					<div class="row">
-						<button id="simulateButton" class="btn btn-dark buttons button-corners button-size">Simulieren</button>
+						<button id="simulateButton" class="btn btn-dark buttons button-corners button-size"></button>
 					</div>
 					<div class="row padding-button">
-						<button id="resetButton" class="btn btn-dark buttons button-corners button-size">Reset</button>
+						<button id="resetButton" class="btn btn-dark buttons button-corners button-size"></button>
 					</div>
 				</div>
 				<div class="col-3">
 					<div id="saveButtonRow" class="row">
-						<button id="saveButton" class="btn buttons button-corners">Speichern</button>
-						<span id="saveText" style="display:none;">Konfiguration wurde gespeichert!</span>
+						<button id="saveButton" class="btn buttons button-corners"></button>
+						<span id="saveText" style="display:none;"></span>
 					</div>
 				</div>
 
@@ -67,6 +67,23 @@
 		};
 		var fmImagePath;
 		$(document).ready(function() {
+			$('#difficultyLabel').html(M.util.get_string('tiles_difficultyLabel', 'mod_exagames'));
+			$('#saveButton').html(M.util.get_string('tiles_saveButton', 'mod_exagames'));
+			$('#randomizeButton').html(M.util.get_string('tiles_randomizeButton', 'mod_exagames'));
+			$('#simulateButton').html(M.util.get_string('tiles_simulateButton', 'mod_exagames'));
+			$('#saveText').html(M.util.get_string('tiles_saveText', 'mod_exagames'));
+			$('#resetButton').html(M.util.get_string('tiles_resetButton', 'mod_exagames'));
+			$("#difficultyForm input[value='easy']")
+				.next()
+				.html(M.util.get_string('tiles_difficultyLabel_easy', 'mod_exagames'));
+			$("#difficultyForm input[value='intermediate']")
+				.next()
+				.html(M.util.get_string('tiles_difficultyLabel_medium', 'mod_exagames'));
+			$("#difficultyForm input[value='hard']")
+				.next()
+				.html(M.util.get_string('tiles_difficultyLabel_hard', 'mod_exagames'));
+		
+		
 			if(flashvars.content_url != null && flashvars.display_order != null && flashvars.difficulty != null) {
 				fmImagePath = flashvars.content_url;
 				clickedTiles = flashvars.display_order.split(",");
