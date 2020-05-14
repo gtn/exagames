@@ -28,5 +28,5 @@ $plugin->version = 2018092600;
 $plugin->requires = 2010112400;
 $plugin->cron      = 0;
 $plugin->component = 'mod_exagames';
-$plugin->maturity  = MATURITY_BETA;
+$plugin->maturity  = MATURITY_STABLE;
 $plugin->release  = 'v1.1';

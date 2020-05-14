@@ -71,3 +71,8 @@ $string['game_tiles_rules'] = 'Bist du bereit für die exaclick-Challenge? Versu
 
 // Config
 $string['version_5.2.0_needed'] = 'Exagames benötigt mindestens PHP-Version 5.2.0';
+
+$string['brain_istrue'] = 'Wahr';
+$string['brain_isfalse'] = 'Falsch';
+$string['brain_noquestions'] = "Noch keine Fragen definiert!";
+$string['brain_continue'] = "Weiter";

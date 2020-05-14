@@ -469,13 +469,13 @@
 							} else if (questionNodes[i].getAttribute('type') == 'truefalse') {
 								answers.push({
 									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 1:0,
-									text: "Wahr",
+									text: M.util.get_string('brain_istrue', 'mod_exagames'),
 									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? true:false,
 									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 1.0:0.0
 								},
 								{
 									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 0:1,
-									text: "Falsch",
+									text:  M.util.get_string('brain_isfalse', 'mod_exagames'),
 									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? false:true,
 									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 0.0:1.0
 								})
@@ -514,7 +514,7 @@
 			//on finishing all ajax requests, loaded all available questions
 			$(document).ajaxStop(function() {
 				if(questions.length == 0) {
-					alert("No questions configured yet!");
+					alert( M.util.get_string('brain_noquestions', 'mod_exagames'));
 					exit();
 				}
 				questionUpdate();
@@ -559,7 +559,6 @@
 			$('#contentContainer').css('pointer-events', '');
 			if(round == questions.length){
 				$('#question-field').remove();
-
 				return;
 			}
 			$('#question-field').empty();
@@ -591,7 +590,7 @@
 				}
 				domAppend += '</div>';
 				$('#question-field').append(domAppend);
-				$('#question-field').append('<button id="loginButton" class="btn btn-dark">Weiter</button>');
+				$('#question-field').append('<button id="loginButton" class="btn btn-dark">' + M.util.get_string('brain_continue', 'mod_exagames') + '</button>');
 				$('#loginButton').click(function(e) {
 						handleAnswer(e, "multiple-choice");
 					});

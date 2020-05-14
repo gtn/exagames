@@ -251,6 +251,11 @@ $navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' =
 
 $PAGE->set_url($_SERVER['REQUEST_URI']);
 $PAGE->requires->js('/mod/exagames/js/swfobject.js', true);
+
+$stringman = get_string_manager();
+$strings = $stringman->load_component_strings('mod_exagames', 'en');
+$PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
+
 echo $OUTPUT->header();
 
 //$context = get_context_instance(CONTEXT_COURSE, $game->course);
