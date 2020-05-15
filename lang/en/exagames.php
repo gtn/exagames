@@ -51,11 +51,11 @@ $string['noquizzesincourse'] = 'Please create {$a->linkTag}a new quiz</a> first,
 $string['savingdata'] = 'Saving data...';
 $string['gametype'] = 'Game-Type';
 $string['quizid'] = 'Quiz';
-$string['gametype_help'] = 'Exabis-Games beinhaltet derzeit 2 Spiele:
+$string['gametype_help'] = 'Exabis-Games currently includes 2 games:
 
-* braingame - Hier wird die Durchführung von Tests mit Flash-Animationen begleitet. Ziel ist es, den Wissenschaftler durch die korrekten Antworten dabei zu helfen, ins All zu fliegen!
-* exaclick - Hier wird ein Bild mit der Zeit sichtbarer, welches für die Beantwortung der jeweiligen Frage bedeutend ist. Bei Klick auf eine der Lösungsalternativen stoppt die Zeit und die Antwort wird ausgewertet. Die Fragen müssen für dieses Spiel im Vorhinein im "Fragen konfigurieren"-tab konfiguriert werden.<br /><br />HINWEIS: Im Konfigurator werden nur jene Bilder (jpg, png, gif) gelistet, welche im selben Kurs als Ressource oder in einem Ordner abgelegt sind, in der auch die Exagames-Aktivität statt findet.';
-$string['quizid_help'] = 'Wählen Sie ein Quiz aus, welches für diese Spiel-Instanz von exagames verwendet werden soll.';
+* braingame - The implementation of tests with flash animations is supported here. The goal is to help the scientist with the correct answers to fly into space!
+* exaclick - Here a picture becomes more visible over time, which is important for answering the respective question. When you click on one of the alternative solutions, the time stops and the answer is evaluated. The questions for this game have to be configured in advance in the "Configure questions" tab. <br /> <br /> NOTE: Only those images (jpg, png, gif) are listed in the configurator which are in the same course as a resource or are stored in a folder in which the Exagames activity also takes place.';
+$string['quizid_help'] = 'Select a quiz to use for this game instance from exagames.';
 $string['url'] = 'Url';
 $string['url_help'] = 'paste your gamelabs.at-adventure game here to embed it.<br /><br />this option will only work with a gamelabs-game-link and does not need Moodle-questions.';
 // Games
