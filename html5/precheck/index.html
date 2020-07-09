@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Precheck_LMS</title>
+    <link rel="shortcut icon" href="html5/precheck/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="html5/precheck/TemplateData/style.css">
+    <script src="html5/precheck/TemplateData/UnityProgress.js"></script>
+    <script src="html5/precheck/Build/UnityLoader.js"></script>
+    <script>
+      var unityInstance = UnityLoader.instantiate("unityContainer", "html5/precheck/Build/precheck.json", {onProgress: UnityProgress});
+    </script>
+  </head>
+  <body>
+    <div class="webgl-content">
+      <div id="unityContainer" style="width: 100%; height: 100%; position: static;"></div>
+      <div class="footer">
+        <div class="webgl-logo"></div>
+        <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+        <div class="title">Precheck_LMS</div>
+      </div>
+    </div>
+  </body>
+</html>

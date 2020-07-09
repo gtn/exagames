@@ -219,22 +219,7 @@ if ($action == 'data') {
 }
 
 $context = get_context_instance(CONTEXT_COURSE, $game->course);
-/*if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
-	$questionConfig = new stdClass();
-	$questionConfig->id = $questionId;
-	$questionConfig->content_url = $content_url;
-	$questionConfig->tile_size = optional_param('tile_size', '', PARAM_TEXT);
-	$questionConfig->difficulty = optional_param('difficulty', '', PARAM_TEXT);
-	$questionConfig->display_order = optional_param('display_order', '', PARAM_TEXT);
 
-	if (!$DB->record_exists('exagames_question', array('id'=>$questionId))) {
-		$DB->Execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");
-	}
-	$DB->update_record('exagames_question', $questionConfig);
-
-	echo "ok=1";
-	exit;
-}*/
 
 
 add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
@@ -260,180 +245,7 @@ echo $OUTPUT->header();
 
 //$context = get_context_instance(CONTEXT_COURSE, $game->course);
 $context = context_module::instance($cm->id);
-/*
-if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_question_file') {
-	$questionId  = optional_param('questionid', '', PARAM_INT);
 
-	if (!isset($quiz->questions[$questionId])) {
-		print_error('wrong question');
-	}
-
-	$question = $quiz->questions[$questionId];
-
-	require_once($CFG->dirroot.'/lib/formslib.php');
-
-	class configure_question_file_form extends moodleform {
-
-		// Define the form
-		function definition () {
-			global $CFG, $COURSE;
-			$mform =& $this->_form;
-
-			/// Print the required moodle fields first
-			$mform->addElement('filemanager', 'file', 'File', null,  array('maxfiles' => 1));
-
-			$this->add_action_buttons();
-		}
-	}
-
-	$questionform = new configure_question_file_form($_SERVER['REQUEST_URI'], null);
-
-	$draftitemid = file_get_submitted_draft_itemid('file');
-	file_prepare_draft_area($draftitemid, $context->id, 'mod_exagames', 'questions', $question->id);
-	$question->file = $draftitemid;
-
-	if ($questionform->is_cancelled()) {
-		if ($question->content_url)
-			redirect(new moodle_url('/mod/exagames/view.php?action=configure_questions&id='.$id.'&questionid='.$question->id));
-		else
-			redirect(new moodle_url('/mod/exagames/view.php?action=configure_questions&id='.$id));
-	} else if ($formdata = $questionform->get_data()) {
-
-		var_dump($formdata);
-
-		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-		file_save_draft_area_files($formdata->file, $context->id, 'mod_exagames', 'questions', $question->id);
-
-		$fs = get_file_storage();
-		$file = $fs->get_area_files($context->id, 'mod_exagames', 'questions', $question->id);
-
-		$file = reset($file);
-		$path = '/'.$file->get_contextid().'/mod_exagames/questions/'.$file->get_filepath().$file->get_filename();
-		$fullurl = file_encode_url($CFG->wwwroot.'/pluginfile.php', $path, false);
-
-		echo $fullurl;
-
-		var_dump($file);
-		exit;
-	} else {
-		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-
-		$fs = get_file_storage();
-		$file = $fs->get_area_files($context->id, 'mod_exagames', 'questions', $question->id);
-
-		$file = reset($file);
-		if ($file) {
-			var_dump($file->get_filesize());
-			var_dump(get_class_methods($file));
-			var_dump($file);
-			$path = '/'.$file->get_contextid().'/mod_exagames/file/'.$file->get_filepath().$file->get_filename();
-			var_dump($path);
-			$fullurl = file_encode_url($CFG->wwwroot.'/pluginfile.php', $path, false);
-
-			echo $fullurl;
-		}
-
-		$questionform->set_data($question);
-
-		print_header_simple(format_string($game->name), "", $navigation, "", "", true,
-				  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
-		exagames_print_tabs($game, 'configure_questions');
-
-		$questionform->display();
-
-		/// Finish the page
-		echo $OUTPUT->footer();
-	}
-
-	exit;
-}
-
-*/
-//print_header_simple(format_string($game->name), "", $navigation, "", "", true,
-			//  update_module_button($cm->id, $course->id, $strexagames), navmenu($course, $cm));
-
-	//$moduleId = $DB->get_field('modules', 'id', array('name'=>'exagames'));
-	//$courseContextId = context_course::instance($COURSE->id)->id;
-	//$result = $DB->get_records('folder', array('course'=> $COURSE->id));
-
-	//echo "SELECT * FROM mdl_files f JOIN mdl_context ctx ON f.contextid = ctx.id having f.contextid IN ($ids)";
-
-	//$fs = get_file_storage();
-	/*$files = $fs->get_area_files(, 'mod_folder', 'content');
-	//var_dump($files);
-	foreach ($files as $f) {
-    // $f is an instance of stored_file
-		$fName = $f->get_filename();
-		if(substr($fName, -3) == 'jpg' || substr($fName, -3) == 'png' || substr($fName, -3) == 'gif')
-	}*/
-	/*
-if (has_capability('moodle/course:manageactivities', $context) && $action == 'configure_questions') {
-
-	exagames_print_tabs($game, 'configure_questions');
-
-	$questionId  = optional_param('questionid', '', PARAM_INT);
-
-	if (isset($quiz->questions[$questionId])) {
-		$question = $quiz->questions[$questionId];
-
-		$flashvars = array(
-			'save_url' => $_SERVER['REQUEST_URI'],
-			'back_url' => $_SERVER['PHP_SELF'].'?action=configure_questions&id='.$cm->id,
-			'content_url' => $question->content_url,
-			'tile_size' => $question->tile_size,
-			'difficulty' => $question->difficulty,
-			'display_order' => $question->display_order,
-			'selectable_images' => $img_files
-		);
-
-		?>
-		 <script src="html5/js/jquery.min.js"></script>
-
-		<script type="text/javascript">
-
-			var flashvars = <?php echo json_encode($flashvars) ?>;
-			var params = {};
-			var attributes = {};
-			//swfobject.embedSWF(<?php echo json_encode($CFG->wwwroot.'/mod/exagames/swf/tiles_editor.swf'); ?>, "GameContent", "940", "535", "9.0.0", false, flashvars, params, attributes);
-			$(document).ready(function(){
-				$( "#GameContent" ).empty();
-				//$( "#GameContent" ).append('<iframe height="900" width= "1200" src="./html5/tiles_editor/tiles.html">Could not load iframe</iframe>');
-				$( "#GameContent" ).load('./html5/tiles_editor/tiles.html');
-			});
-	</script>
-		<div id="Game" style="width: 940px; margin: 0 auto;">
-			<div id="GameContent" style="width: 940px; margin: 0 auto;">
-				<a href="http://www.adobe.com/go/getflashplayer" style="display: block; padding: 40px; text-align: center;">
-					<img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" />
-				</a>
-			</div>
-		</div>
-		<?php
-	} else {
-		// list questions
-
-		echo '<table border="0" align="center" cellspacing="0" cellpadding="2">';
-		echo '<b>'.get_string('questions', 'quiz').':</b><br />';
-		foreach ($quiz->questions as $question) {
-			echo '<tr><td>';
-			echo '<a href="'.$CFG->wwwroot.'/mod/exagames/view.php?action=configure_questions&id='.$cm->id.'&questionid='.$question->id.'">'.$question->name.'</a><br />';
-			echo '</td><td>';
-			echo get_string($question->content_url?'question_configured':'question_not_configured', 'exagames');
-			echo '</td></tr>';
-		}
-		echo '</table>';
-	}
-
-	/// Finish the page
-	echo $OUTPUT->footer();
-	exit;
-}
-*/
-
-/*
-$globalTopScore = get_field_sql("SELECT MAX(score) FROM {$CFG->prefix}exagames_scores WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."'");
-$myBestScore = get_field_sql("SELECT MAX(score) AS score FROM {$CFG->prefix}exagames_scores WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."' AND userid=".$USER->id);
-*/
 exagames_print_tabs($game, 'show');
 
 /// Print the main part of the page
@@ -465,7 +277,7 @@ $gametype = $game->gametype;
 	if(gameType == 'braingame') {
 		$(document).ready(function(){
 				$( "#GameContent" ).empty();
-				$( "#GameContent" ).load('./html5/braingame/braingame.html');
+				$( "#GameContent" ).load('./html5/precheck/index.html');
 		});
 	} else if (gameType == 'tiles') {
 		$(document).ready(function(){

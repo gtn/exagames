@@ -1,0 +1,16 @@
+{
+"companyName": "Pool3",
+"productName": "Precheck_LMS",
+"productVersion": "1.0.1966.3315",
+"dataUrl": "precheck.data.unityweb",
+"wasmCodeUrl": "precheck.wasm.code.unityweb",
+"wasmFrameworkUrl": "precheck.wasm.framework.unityweb",
+"graphicsAPI": ["WebGL 2.0","WebGL 1.0"],
+"webglContextAttributes": {"preserveDrawingBuffer": false},
+"splashScreenStyle": "Dark",
+"backgroundColor": "#000000",
+"cacheControl": {"default": "must-revalidate"},
+"developmentBuild": false,
+"multithreading": false,
+"unityVersion": "2019.3.13f1"
+}
