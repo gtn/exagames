@@ -23,21 +23,6 @@ function xmldb_exagames_upgrade($oldversion=0) {
 
     $result = true;
 
-    if ($result && $oldversion < 2009042100) {
-  		// changes to exabisgames table
-		$table = new XMLDBTable('exabisgames');
-		$field = new XMLDBField('swf');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '12', null, XMLDB_NOTNULL);
-        $result = $result && add_field($table, $field);      
-	} elseif ($result && $oldversion < 2010052102) {
-  		// changes to exabisgames table
-		$table = new XMLDBTable('exabisgames');
-		$field = new XMLDBField('swf');
-		// rename needs field
-        $field->setAttributes(XMLDB_TYPE_CHAR, '12', null, XMLDB_NOTNULL);
-        $result = $result && rename_field($table, $field, 'gametype');      
-	}
-
     return $result;
 }
 

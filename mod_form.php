@@ -28,7 +28,7 @@
 
 require_once ('moodleform_mod.php');
 
-class mod_exagames_mod_form extends moodleform_mod {
+class mod_precheck_mod_form extends moodleform_mod {
 
 
 	function definition() {
@@ -39,9 +39,9 @@ class mod_exagames_mod_form extends moodleform_mod {
 
 //-------------------------------------------------------------------------------
 $stringman = get_string_manager();
-$strings = $stringman->load_component_strings('mod_exagames', $CFG->lang);
+$strings = $stringman->load_component_strings('mod_precheck', $CFG->lang);
 
-$PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
+$PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 
 
     /// Adding the "general" fieldset, where all the common settings are showed
@@ -61,92 +61,15 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
         $mform->addElement('format', 'introformat', get_string('format'));
 		*/
 
-	/// Quiz Dropdown
-		$quizzes = array();
-		$quizzes_questionNames = array();
-		$firstQuizId = null;
-		$urlQuizId = optional_param('quizId', 0, PARAM_INT); // Course Module ID, or
-		if($urlQuizId != null) $firstQuizId = $urlQuizId;
-		if ($recs = $DB->get_records_select('quiz', "course='$COURSE->id'", null, 'name', 'id,name')) {
-						foreach ($recs as $rec) {
-							 if($firstQuizId == null) {
-								 $firstQuizId = $rec->id;
-
-							 }
-                $quizzes[$rec->id] = $rec->name;
-								$quizObj = quiz::create($rec->id, $USER->id);
-								$quizObj->preload_questions();
-								$quizObj->load_questions();
-								$qDetails = new stdClass();
-								$qNameArr = array();
-								foreach($quizObj->get_questions() as $q) {
-									$curDetails = $DB->get_record('exagames_question', array ('id'=>$q->id), $fields='difficulty, display_order, content_url', $strictness=IGNORE_MISSING);
-									$qDetails->difficulty = $curDetails->difficulty;
-									$qDetails->display_order = $curDetails->display_order;
-									$qDetails->content_url = $curDetails->content_url;
-									$qDetails->name = $q->name;
-									$qDetails->id = $q->id;
-
-
-									$qNameArr[] = clone $qDetails;
-								}
-								$qObject = new stdClass();
-								$qObject->questionDetails = $qNameArr;
-							//	$temp = $DB->get_record('exagames_question', array ('id'=>), $fields='*', $strictness=IGNORE_MISSING);
-
-								$qObject->quizName = $rec->name;
-
-								$quizzes_questionNames[$rec->id] = $qObject;
-            }
-    }
-
-
-
-        $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $quizzes);
-        $mform->addHelpButton('quizid', 'quizid', 'exagames');
-		$mform->addRule('quizid', null, 'required', null, 'client');
 
 		$games = array(
-			'braingame' => get_string('game_braingame', 'exagames'),
-			'tiles' => get_string('game_tiles', 'exagames')
+			'precheck' => get_string('game_precheck', 'exagames'),
 		);
 
 			//element type, key, language, options
 
 		$mform->addElement('select', 'gametype', get_string('gametype', 'exagames'), $games);
 		$mform->addHelpButton('gametype', 'gametype', 'exagames');
-
-		$quizLen = count($quizzes_questionNames[$firstQuizId]->questionDetails);
-
-			foreach ($quizzes_questionNames as $quizKey => $quizzes) {
-				foreach($quizzes->questionDetails as $questKey => $qDetails) {
-					$content_url =  $qDetails->content_url;
-					$display_order = $qDetails->display_order;
-					$difficulty = $qDetails->difficulty;
-					$question_id = $qDetails->id;
-
-					$tilesEditor = [];
-
-					$urlParams = '?';
-					$urlParams .= isset($content_url) && $content_url != null ? "content_url=$content_url&" : "";
-					$urlParams .= isset($display_order) && $display_order != null ? "display_order=$display_order&" : "";
-					$urlParams .= isset($difficulty) && $difficulty != null ? "difficulty=$difficulty&" : "";
-					$urlParams .= isset($question_id) && $question_id != null ? "question_id=$question_id" : "";
-
-					$tilesEditor[] = $mform->createElement(html, '
-											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
-												<iframe class="editor_frames" id="editorframe-' . $quizKey . '-quest-' . $questKey . '" frameborder="0" style="height:600px;width:940px" src="' . $CFG->wwwroot . '/mod/exagames/html5/form_editor/tiles.html' . $urlParams . '"></iframe></br>
-											</div>');
-					$tilesEditor[] =	$mform->createElement('filemanager', 'attachments', get_string('attachment', 'exagames'), null,
-													array('subdirs' => 0, 'maxbytes' => $maxbytes, 'areamaxbytes' => 10485760, 'maxfiles' => 1,
-																'accepted_types' => array('.jpg', '.png', '.gif'), 'return_types'=> FILE_INTERNAL | FILE_EXTERNAL));
-
-					$mform->addGroup($tilesEditor, 'Editor', get_string('question', 'exagames') . '"' . $qDetails->name . '"');
-				}
-			}
-
-
-
 
 
 
@@ -300,22 +223,7 @@ $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('til
  </script>
 		<?php
 
-		if ((optional_param('func', '', PARAM_TEXT) == 'configure_question') && ($questionId = optional_param('questionid', '', PARAM_INT)) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
-			$questionConfig = new stdClass();
-			$questionConfig->id = $questionId;
-			$questionConfig->content_url = $content_url;
-			$questionConfig->tile_size = optional_param('tile_size', '', PARAM_TEXT);
-			$questionConfig->difficulty = optional_param('difficulty', '', PARAM_TEXT);
-			$questionConfig->display_order = optional_param('display_order', '', PARAM_TEXT);
 
-			if (!$DB->record_exists('exagames_question', array('id'=>$questionId))) {
-				$DB->Execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");
-			}
-
-			$DB->update_record('exagames_question', $questionConfig);
-			echo "ok=1";
-			exit;
-		}
 
 		/*
 		$mform->addElement('text', 'url', get_string('url', 'exagames'), array('size'=>'64'));

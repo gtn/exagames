@@ -49,7 +49,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-	'mod/exagames:addinstance' => array(
+	'mod/precheck:addinstance' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(

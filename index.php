@@ -14,20 +14,20 @@ require_once("../../config.php");
 require_once("lib.php");
 
 $id = required_param('id', PARAM_INT);   // course
-$PAGE->set_url('/mod/exagames/index.php', array('id'=>$id));
+$PAGE->set_url('/mod/precheck/index.php', array('id'=>$id));
 if (! $course = $DB->get_record("course", array("id"=>$id))) {
 	print_error("Course ID is incorrect");
 }
 
 require_login($course->id);
 
-add_to_log($course->id, "exagames", "view all", "index.php?id=$course->id", "");
+add_to_log($course->id, "precheck", "view all", "index.php?id=$course->id", "");
 
 
-/// Get all required stringsexagames
+/// Get all required strings
 
-$strexagamess = get_string("modulenameplural", "exagames");
-$strexagames  = get_string("modulename", "exagames");
+$strexagamess = get_string("modulenameplural", "precheck");
+$strexagames  = get_string("modulename", "precheck");
 
 
 /// Print the header
@@ -40,7 +40,7 @@ $PAGE->navbar->add($course->fullname, new moodle_url('', array('id' => $course->
 
 /// Get all the appropriate data
 
-if (! $exagamess = get_all_instances_in_course("exagames", $course)) {
+if (! $exagamess = get_all_instances_in_course("precheck", $course)) {
 	notice("There are no exagamess", "../../course/view.php?id=$course->id");
 	die;
 }

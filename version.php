@@ -17,9 +17,6 @@
 /**
  * TODO
  *
- * @package   EXAGAMES_FRANKENSTYLE
- * @copyright EXAGAMES
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,6 +24,6 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->version = 2018092600;
 $plugin->requires = 2010112400;
 $plugin->cron      = 0;
-$plugin->component = 'mod_exagames';
+$plugin->component = 'mod_precheck';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release  = 'v1.1';

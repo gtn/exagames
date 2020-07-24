@@ -26,17 +26,15 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  * @param object $instance An object from the form in mod.html
  * @return int The id of the newly inserted exagames record
  **/
-function exagames_add_instance($game)
+function precheck_add_instance($game)
 {
 	global $DB;
     $game->timecreated = time();
 	if (!$game->introformat) $game->introformat = '';
 
-    if (!$game->id = $DB->insert_record("exagames", $game)) {
+    if (!$game->id = $DB->insert_record("precheck", $game)) {
         return false;
     }
-	if($game->gametype != "gamelabs")
-		exagames_after_add_or_update($game);
 
 	return $game->id;
 }
@@ -49,7 +47,7 @@ function exagames_add_instance($game)
  * @param object $instance An object from the form in mod.html
  * @return boolean Success/Fail
  **/
-function exagames_update_instance($game)
+function precheck_update_instance($game)
 {
 	global $DB;
 	
@@ -79,10 +77,10 @@ function exagames_update_instance($game)
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
  **/
-function exagames_delete_instance($id) {
+function precheck_delete_instance($id) {
 	global $DB;
 	
-    if (! $game = $DB->get_record("exagames", array("id"=>$id))) {
+    if (! $game = $DB->get_record("precheck", array("id"=>$id))) {
         return false;
     }
 
@@ -90,7 +88,7 @@ function exagames_delete_instance($id) {
 
     # Delete any dependent records here #
 
-    if (! $DB->delete_records("exagames", array("id"=>$game->id))) {
+    if (! $DB->delete_records("precheck", array("id"=>$game->id))) {
         $result = false;
     }
 
@@ -109,7 +107,7 @@ function exagames_delete_instance($id) {
  * @return null
  * @todo Finish documenting this function
  **/
-function exagames_user_outline($course, $user, $mod, $exagames) {
+function precheck_user_outline($course, $user, $mod, $exagames) {
     return $return;
 }
 
@@ -120,7 +118,7 @@ function exagames_user_outline($course, $user, $mod, $exagames) {
  * @return boolean
  * @todo Finish documenting this function
  **/
-function exagames_user_complete($course, $user, $mod, $exagames) {
+function precheck_user_complete($course, $user, $mod, $exagames) {
     return true;
 }
 
@@ -133,7 +131,7 @@ function exagames_user_complete($course, $user, $mod, $exagames) {
  * @return boolean
  * @todo Finish documenting this function
  **/
-function exagames_print_recent_activity($course, $isteacher, $timestart) {
+function precheck_print_recent_activity($course, $isteacher, $timestart) {
     global $CFG;
 
     return false;  //  True if anything was printed, otherwise false 
@@ -148,7 +146,7 @@ function exagames_print_recent_activity($course, $isteacher, $timestart) {
  * @return boolean
  * @todo Finish documenting this function
  **/
-function exagames_cron () {
+function precheck_cron () {
     global $CFG;
 
     return true;
@@ -167,7 +165,7 @@ function exagames_cron () {
  * @param int $exagamesid ID of an instance of this module
  * @return mixed Null or object with an array of grades and with the maximum grade
  **/
-function exagames_grades($exagamesid) {
+function precheck_grades($exagamesid) {
    return NULL;
 }
 
@@ -180,7 +178,7 @@ function exagames_grades($exagamesid) {
  * @param int $exagamesid ID of an instance of this module
  * @return mixed boolean/array of students
  **/
-function exagames_get_participants($exagamesid) {
+function precheck_get_participants($exagamesid) {
     return false;
 }
 
@@ -194,7 +192,7 @@ function exagames_get_participants($exagamesid) {
  * @return mixed
  * @todo Finish documenting this function
  **/
-function exagames_scale_used ($exagamesid,$scaleid) {
+function precheck_scale_used ($exagamesid,$scaleid) {
     $return = false;
 
     //$rec = get_record("exagames","id","$exagamesid","scale","-$scaleid");
@@ -214,7 +212,7 @@ function exagames_scale_used ($exagamesid,$scaleid) {
  * @param $scaleid int
  * @return boolean True if the scale is used by any exagames
  */
-function exagames_scale_used_anywhere($scaleid) {
+function precheck_scale_used_anywhere($scaleid) {
     if ($scaleid and record_exists('exagames', 'grade', -$scaleid)) {
         return true;
     } else {
@@ -228,7 +226,7 @@ function exagames_scale_used_anywhere($scaleid) {
  *
  * @return boolean true if success, false on error
  */
-function exagames_install() {
+function precheck_install() {
      return true;
 }
 
@@ -238,7 +236,7 @@ function exagames_install() {
  *
  * @return boolean true if success, false on error
  */
-function exagames_uninstall() {
+function precheck_uninstall() {
     return true;
 }
 
@@ -348,27 +346,20 @@ function exagames_load_quiz($quizid) {
 	return $quiz;
 }
 
-function exagames_get_game_instance($instanceid)
+function precheck_get_game_instance($instanceid)
 {
 	global $DB;
-	$game = $DB->get_record("exagames", array("id" => $instanceid));
+	$game = $DB->get_record("precheck", array("id" => $instanceid));
 	
 	// test for correct gametype
 	if (!in_array($game->gametype, array_keys(exagames_get_available_games()))) {
 		$game->gametype = exagames_get_default_game();
 	}
-	
-	$game->swf = exagames_get_swf_url($game->gametype);
-	
-	if ($game->gametype == 'tiles') {
-		$game->hasHighscore = true;
-		$game->width = 940;
-		$game->height = 535;
-	} else {
+
 		$game->hasHighscore = false;
 		$game->width = 800;
 		$game->height = 600;
-	}
+
 	
 	return $game;
 }
@@ -386,7 +377,7 @@ function exagames_get_available_games($quizzes = true)
 }
 function exagames_get_default_game()
 {
-	return 'braingame';
+	return 'precheck';
 }
 function exagames_get_default_swf()
 {
@@ -414,7 +405,7 @@ function exagames_grade_item_delete($game)
     global $CFG;
     require_once $CFG->libdir.'/gradelib.php';
 
-    return grade_update('mod/exabisgaems', $game->course, 'mod', 'exagames', $game->id, 0, NULL, array('deleted'=>1));
+    return grade_update('mod/precheck', $game->course, 'mod', 'precheck', $game->id, 0, NULL, array('deleted'=>1));
 }
 
 /**
@@ -441,7 +432,6 @@ function exagames_grade_item_update($game, $grades=NULL)
     global $CFG;
 	require_once $CFG->libdir.'/gradelib.php';
 
-	$quiz = exagames_load_quiz($game->quizid);
 
 	$params = array('itemname'=>$game->name);
 	$params['gradetype'] = GRADE_TYPE_VALUE;
@@ -453,7 +443,7 @@ function exagames_grade_item_update($game, $grades=NULL)
         $grades = NULL;
     }
 
-	return grade_update('mod/exagames', $game->course, 'mod', 'exagames', $game->id, 0, $grades, $params);
+	return grade_update('mod/precheck', $game->course, 'mod', 'precheck', $game->id, 0, $grades, $params);
 }
 
 function exagames_quiz_attempt($game, $grade)
