@@ -100,17 +100,6 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
             }
     }
 
-		/*if (!$quizzes) {
-			// dirty as moodle: link to add quiz if no quiz was found in this course!
-			$return  = optional_param('return', 0, PARAM_BOOL);
-		    $type    = optional_param('type', '', PARAM_ALPHANUM);
-			$section = required_param('section', PARAM_INT);
-
-			$a = new StdClass;
-			$a->linkTag = '<a href="'.$CFG->wwwroot.'/course/modedit.php?add=quiz&type='.$type.'&course='.$COURSE->id.'&section='.$section.'&return='.$return.'">';
-			$redirect = $CFG->wwwroot.'/course/modedit.php?add=quiz&type='.$type.'&course='.$COURSE->id.'&section='.$section.'&return='.$return;
-			print_error('noquizzesincourse', 'exagames', $redirect, $a);
-		}*/
 
 
         $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $quizzes);

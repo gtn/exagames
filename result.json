@@ -1,0 +1,61 @@
+{
+    "Attempts": 3,
+    "TotalTimeInSeconds": 450.0,
+    "TrainingsResultInPercent": 87.5,
+    "TotalErrorDecreaseInPercent": 15.0,
+    "TaskList": [
+        {
+            "ID": "Hoch heben",
+            "TimeInSeconds": 80.0,
+            "Completed": true,
+            "FailureID": "",
+            "TaskValue": 30.0,
+            "SuccessRate": 100.0,
+            "SubTaskList": []
+        },
+        {
+            "ID": "Wohin bringen",
+            "TimeInSeconds": 250.0,
+            "Completed": true,
+            "FailureID": "",
+            "TaskValue": 50.0,
+            "SuccessRate": 75.0,
+            "SubTaskList": [
+                {
+                    "ID": "Aus Regal raus",
+                    "TimeInSeconds": 100.0,
+                    "Completed": true,
+                    "FailureID": "",
+                    "TaskValue": 75.0,
+                    "SuccessRate": 100.0,
+                    "SubTaskList": []
+                },
+                {
+                    "ID": "Ins naechste Regal rein",
+                    "TimeInSeconds": 150.0,
+                    "Completed": true,
+                    "FailureID": "Falsch gemacht",
+                    "TaskValue": 25.0,
+                    "SuccessRate": 0.0,
+                    "SubTaskList": []
+                }
+            ]
+        },
+        {
+            "ID": "Ablegen",
+            "TimeInSeconds": 120.0,
+            "Completed": true,
+            "FailureID": "",
+            "TaskValue": 20.0,
+            "SuccessRate": 100.0,
+            "SubTaskList": []
+        }
+    ],
+    "ErrorList": [
+        {
+            "ID": "Angefahren",
+            "Amount": 3,
+            "ErrorValue": 5.0
+        }
+    ]
+}

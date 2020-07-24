@@ -445,7 +445,7 @@ function exagames_grade_item_update($game, $grades=NULL)
 
 	$params = array('itemname'=>$game->name);
 	$params['gradetype'] = GRADE_TYPE_VALUE;
-	$params['grademax']  = $quiz->sumgrades;
+	$params['grademax']  = 100;
 	$params['grademin']  = 0;
 
 	if ($grades  === 'reset') {

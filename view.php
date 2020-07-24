@@ -51,6 +51,20 @@ if($game->gametype != "gamelabs")
 	$quiz = exagames_load_quiz($game->quizid);
 
 
+	//--------------------------------------------------------------------pool3 action
+	$json_string = file_get_contents('./result.json');
+	
+	// problem mit umlauten
+	$json_a = json_decode($json_string, true);
+	var_dump($json_a);
+	
+	$updateGrade = new StdClass;
+	$updateGrade->rawgrade = $json_a['TrainingsResultInPercent'];
+	$updateGrade->userid = $USER->id;
+	
+	exagames_grade_item_update($game, $updateGrade);
+	
+	
 
 if ($action == 'translations') {
 	require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
