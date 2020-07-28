@@ -12,10 +12,8 @@
         <FIELD NAME="intro" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="General introduction of the newmodule activity" PREVIOUS="name" NEXT="introformat"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)" PREVIOUS="intro" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="introformat" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated" NEXT="quizid"/>
-        <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="gametype"/>
-        <FIELD NAME="gametype" TYPE="char" LENGTH="12" NOTNULL="false" SEQUENCE="false" PREVIOUS="quizid" NEXT="url"/>
-        <FIELD NAME="url" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="url für gamelabs.at flash game" PREVIOUS="gametype"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated" NEXT="gametype"/>
+        <FIELD NAME="gametype" TYPE="char" LENGTH="12" NOTNULL="false" SEQUENCE="false" PREVIOUS="timemodified" />
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -29,7 +27,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="userid who edited the item" PREVIOUS="id" NEXT="itemid"/>
         <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="item that was changed" PREVIOUS="userid" NEXT="name"/>
-				<FIELD NAME="data" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="data saved" PREVIOUS="itemid"/>
+				<FIELD NAME="data" TYPE="text" LENGTH="big" NOTNULL="true" SEQUENCE="false" COMMENT="data saved" PREVIOUS="itemid"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

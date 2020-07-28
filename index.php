@@ -1,14 +1,4 @@
-<?php // $Id: index.php,v 1.7 2007/09/03 12:23:36 jamiesensei Exp $
-// todo check db
-/**
- * This page lists all the instances of exagames in a particular course
- *
- * @author
- * @version $Id: index.php,v 1.7 2007/09/03 12:23:36 jamiesensei Exp $
- * @package exagames
- **/
-
-/// Replace exagames with the name of your module
+<?php 
 
 require_once("../../config.php");
 require_once("lib.php");
@@ -26,22 +16,21 @@ add_to_log($course->id, "precheck", "view all", "index.php?id=$course->id", "");
 
 /// Get all required strings
 
-$strexagamess = get_string("modulenameplural", "precheck");
-$strexagames  = get_string("modulename", "precheck");
+$strprechecks = get_string("modulenameplural", "precheck");
+$strprecheck  = get_string("modulename", "precheck");
 
 
 /// Print the header
 
 $navlinks = array();
-$navlinks[] = array('name' => $strexagamess, 'link' => '', 'type' => 'activity');
-//$navigation = build_navigation($navlinks);
+$navlinks[] = array('name' => $strprechecks, 'link' => '', 'type' => 'activity');
+
 $PAGE->navbar->add($course->fullname, new moodle_url('', array('id' => $course->id)));
-//print_header_simple("$strexagamess", "", $navigation, "", "", true, "", navmenu($course));
+
 
 /// Get all the appropriate data
 
-if (! $exagamess = get_all_instances_in_course("precheck", $course)) {
-	notice("There are no exagamess", "../../course/view.php?id=$course->id");
+if (! $prechecks = get_all_instances_in_course("precheck", $course)) {
 	die;
 }
 
@@ -65,17 +54,17 @@ if ($course->format == "weeks") {
 	$table->align = array ("left", "left", "left");
 }
 
-foreach ($exagamess as $exagames) {
-	if (!$exagames->visible) {
+foreach ($prechecks as $precheck) {
+	if (!$precheck->visible) {
 		//Show dimmed if the mod is hidden
-		$link = "<a class=\"dimmed\" href=\"view.php?id=$exagames->coursemodule\">$exagames->name</a>";
+		$link = "<a class=\"dimmed\" href=\"view.php?id=$precheck->coursemodule\">$precheck->name</a>";
 	} else {
 		//Show normal if the mod is visible
-		$link = "<a href=\"view.php?id=$exagames->coursemodule\">$exagames->name</a>";
+		$link = "<a href=\"view.php?id=$precheck->coursemodule\">$precheck->name</a>";
 	}
 
 	if ($course->format == "weeks" or $course->format == "topics") {
-		$table->data[] = array ($exagames->section, $link);
+		$table->data[] = array ($precheck->section, $link);
 	} else {
 		$table->data[] = array ($link);
 	}
