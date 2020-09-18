@@ -100,7 +100,7 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 echo $OUTPUT->header();
 
 //$context = get_context_instance(CONTEXT_COURSE, $game->course);
-$context = context_module::instance($cm->id);
+// $context = context_module::instance($cm->id);
 
 precheck_print_tabs($game, 'show');
 

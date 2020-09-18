@@ -256,23 +256,9 @@ function precheck_print_tabs($game, $currenttab)
 		$url = $CFG->wwwroot.'/course/mod.php?update='.$cm->id.'&return=1&sesskey='.$USER->sesskey;
 		$row[] = new tabobject('edit', $url, get_string('edit'));
 
-		if ($game->quizid && $game->gametype != 'gamelabs') {
-			$quizInstanceId = $DB->get_field_sql("SELECT cm.id
-						   FROM {$CFG->prefix}course_modules cm,
-								{$CFG->prefix}modules md
-						   WHERE md.name = 'quiz' AND
-								 cm.instance = '".$game->quizid."' AND
-								 md.id = cm.module");
+		$row[] = new tabobject('result', $CFG->wwwroot.'/mod/precheck/result.php?cmid='.$cm->instance, get_string('result', 'precheck'));
 
-			if ($quizInstanceId) {
-				$row[] = new tabobject('configure_quiz', $CFG->wwwroot.'/mod/quiz/edit.php?cmid='.$quizInstanceId, get_string('configure_quiz', 'precheck'));
-			}
-		}
-		
-
-		if ($game->gametype != 'tiles' && $game->gametype != 'gamelabs') {
-			$row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
-		}
+	    $row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
 	}
 
 	if (count($row) > 1) {
@@ -397,6 +383,7 @@ function precheck_save_data($string, $itemid){
     $record->userid = $USER->id;
     $record->itemid = $itemid;
     $record->data = $string;
+    $DB->delete_records('precheck_data', array("userid"=>$USER->id, "itemid"=>$itemid));
     $DB->insert_record('precheck_data', $record);
     
 }
