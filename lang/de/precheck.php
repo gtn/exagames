@@ -31,6 +31,7 @@ $string['pluginadministration'] = 'Precheck administration';
 
 $string['exagamesname'] = 'Name';
 $string['gametype'] = 'Spiel-Typ';
+$string['result'] = 'Results';
 // Games
 $string['game_precheck'] = 'Precheck';
 

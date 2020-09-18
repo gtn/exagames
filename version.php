@@ -21,7 +21,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2018092600;
+$plugin->version = 2020091800;
 $plugin->requires = 2010112400;
 $plugin->cron      = 0;
 $plugin->component = 'mod_precheck';
