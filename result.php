@@ -45,7 +45,7 @@ $updateGrade->rawgrade = $json_a['TrainingsResultInPercent'];
 $updateGrade->feedback = "Attempts: ".$json_a['Attempts']."\nTime needed: ". $json_a['TotalTimeInSeconds'];
 $updateGrade->userid = $USER->id;
 
-$resret = $DB->get_record("precheck_data", array("itemid"=>$id, "userid"=>$USER->id));
+$resret = $DB->get_record("precheck_data", array("itemid"=>$cm->instance, "userid"=>$USER->id));
 
 // precheck_grade_item_update($game, $updateGrade);
 // precheck_save_data($json_string, $cm->instance);

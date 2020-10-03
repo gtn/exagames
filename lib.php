@@ -261,7 +261,7 @@ function precheck_print_tabs($game, $currenttab)
 	    $row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
 	}
 	
-	$row[] = new tabobject('result', $CFG->wwwroot.'/mod/precheck/result.php?cmid='.$cm->instance, get_string('result', 'precheck'));
+	$row[] = new tabobject('result', $CFG->wwwroot.'/mod/precheck/result.php?cmid='.$cm->id, get_string('result', 'precheck'));
 
 	if (count($row) > 1) {
 		$tabs[] = $row;
