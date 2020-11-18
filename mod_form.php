@@ -60,6 +60,8 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 
 		$mform->addElement('select', 'gametype', get_string('gametype', 'precheck'), $games);
 		$mform->addHelpButton('gametype', 'gametype', 'precheck');
+		$mform->addElement('filemanager', 'attachments', get_string('attachment', 'moodle'), null,
+		    array('return_types'=> FILE_INTERNAL | FILE_EXTERNAL));
 
 
 		$url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];

@@ -49,7 +49,7 @@ function precheck_add_instance($game)
  **/
 function precheck_update_instance($game)
 {
-	global $DB;
+	global $DB, $CFG;
 	
 	if($game->gametype == "gamelabs" && !$game->url)
 		return false;
@@ -61,6 +61,50 @@ function precheck_update_instance($game)
     if (!$DB->update_record("precheck", $game)) {
         return false;  // some error occurred
     }
+    
+    $fs = get_file_storage();
+        $fileinfo = array(
+            'contextid' => 5,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => 185724733,
+            'filepath' => '/',
+            'filename' => 'test.zip');
+        // delete old temp files (may be - after some pause - one time per day)
+        //$fs->delete_area_files($fileinfo['contextid'],
+         //   $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid']);
+        // create from uploaded
+       // $fs->create_file_from_pathname($fileinfo,
+           // $_FILES["tempFile"]['tmp_name']);
+    // copy to your place
+    $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
+        $fileinfo['filearea'],
+        $fileinfo['itemid'], $fileinfo['filepath'],
+        $fileinfo['filename']);
+    $localfilename = 'test.zip';
+    $pathname = $CFG->tempdir . '/' . $localfilename;
+    
+    //$pathname = $CFG->dirroot . '/../moodle/mod/precheck/html5/' . $localfilename;
+    $file->copy_content_to($pathname);
+    
+    $zip = new ZipArchive;
+    $res = $zip->open($pathname);
+    if ($res === TRUE) {
+        $zip->extractTo($CFG->tempdir .'/prechecks');
+        $zip->close();
+        $contents = scandir($CFG->tempdir . '/prechecks',1);
+        directory_copy($CFG->tempdir . '/prechecks/'. $contents[0], $CFG->dirroot . '/../moodle/mod/precheck/html5/'. $contents[0]);
+        rrmdir($CFG->tempdir . '/prechecks');
+    }
+
+    
+    //extract_zip_subdir($pathname, "checkers",  $CFG->tempdir, $CFG->tempdir);
+    
+    
+    if (!$file) {
+        return false; // The file does not exist.
+    }
+    
 
 
 		precheck_after_add_or_update($game);
@@ -389,3 +433,65 @@ function precheck_save_data($string, $itemid){
     $DB->insert_record('precheck_data', $record);
     
 }
+
+
+function directory_copy($source, $destionation) {
+    $dir = opendir($source);
+    @mkdir($destionation);
+    // Loop through the files in source directory
+    while ($file = readdir($dir)) {
+        if (($file != '.') && ($file != '..')) {
+            if ( is_dir($source.'/'.$file)) {
+                directory_copy($source . '/' . $file, $destionation . '/' . $file);
+            } else {
+                copy($source.'/'.$file, $destionation.'/'.$file);
+            }
+        }
+    }
+    closedir($dir);
+}
+
+function rrmdir($source, $removeOnlyChildren = false)
+{
+    if(empty($source) || file_exists($source) === false)
+    {
+        return false;
+    }
+    
+    if(is_file($source) || is_link($source))
+    {
+        return unlink($source);
+    }
+    
+    $files = new \RecursiveIteratorIterator
+    (
+        new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+        \RecursiveIteratorIterator::CHILD_FIRST
+        );
+    //fileInfo (SplFileInfo)
+    foreach($files as $fileinfo)
+    {
+        if($fileinfo->isDir())
+        {
+            if(rrmdir($fileinfo->getRealPath()) === false)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if(unlink($fileinfo->getRealPath()) === false)
+            {
+                return false;
+            }
+        }
+    }
+    
+    if($removeOnlyChildren === false)
+    {
+        return rmdir($source);
+    }
+    
+    return true;
+}
+
