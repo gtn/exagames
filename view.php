@@ -123,18 +123,17 @@ $gametype = $game->gametype;
 	var flashvars = <?php echo json_encode($flashvars) ?>;
 	var gameType = <?php echo json_encode($gametype) ?>;
 	//var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
-	console.log(gameType);
+	console.log("This is the GameType : " + gameType);
 	var params = {};
 	var attributes = {};
 	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
-	if(gameType == 'precheck') {
+	// chooses gametype by source
 		$(document).ready(function(){
 				$( "#GameContent" ).empty();
-				$( "#GameContent" ).load('./html5/precheck/index.html');
+				$( "#GameContent" ).load('./html5/' + gameType + '/index.html');
 		});
-	}
 
-	</script>
+</script>
 <div id="Game" style="width: 1200px; margin: 0 auto;">
 	<div id="GameContent" style="width: 1200px; margin: 0 auto;">
 		<a href="http://www.adobe.com/go/getflashplayer" style="display: block; padding: 40px; text-align: center;">

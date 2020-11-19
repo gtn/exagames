@@ -49,7 +49,7 @@ function precheck_add_instance($game)
  **/
 function precheck_update_instance($game)
 {
-	global $DB, $CFG;
+    global $DB, $CFG, $COURSE;
 	
 	if($game->gametype == "gamelabs" && !$game->url)
 		return false;
@@ -62,21 +62,23 @@ function precheck_update_instance($game)
         return false;  // some error occurred
     }
     
+    
+    $fileInfo = $DB->get_record_sql("
+				SELECT itemid
+				FROM {files}
+				WHERE contextid = ? AND filename = 'test.zip'
+                ORDER BY timecreated DESC LIMIT 0, 1",
+        array(5));
+    
     $fs = get_file_storage();
         $fileinfo = array(
             'contextid' => 5,
             'component' => 'user',
             'filearea' => 'draft',
-            'itemid' => 185724733,
+            'itemid' => intval($fileInfo->itemid),
             'filepath' => '/',
             'filename' => 'test.zip');
-        // delete old temp files (may be - after some pause - one time per day)
-        //$fs->delete_area_files($fileinfo['contextid'],
-         //   $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid']);
-        // create from uploaded
-       // $fs->create_file_from_pathname($fileinfo,
-           // $_FILES["tempFile"]['tmp_name']);
-    // copy to your place
+        
     $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
         $fileinfo['filearea'],
         $fileinfo['itemid'], $fileinfo['filepath'],
@@ -84,7 +86,6 @@ function precheck_update_instance($game)
     $localfilename = 'test.zip';
     $pathname = $CFG->tempdir . '/' . $localfilename;
     
-    //$pathname = $CFG->dirroot . '/../moodle/mod/precheck/html5/' . $localfilename;
     $file->copy_content_to($pathname);
     
     $zip = new ZipArchive;
@@ -493,5 +494,17 @@ function rrmdir($source, $removeOnlyChildren = false)
     }
     
     return true;
+}
+
+function getGames(){
+    global $CFG;
+    $contents = scandir($CFG->dirroot . '/../moodle/mod/precheck/html5/',1);
+    $retContent = array();
+    foreach($contents as $content){
+        if($content != "css" && $content != "js" && $content != "." && $content != ".."){
+            $retContent[$content] = $content;
+        }
+    }
+    return $retContent;
 }
 

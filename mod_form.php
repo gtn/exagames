@@ -52,9 +52,8 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 		$this->add_intro_editor(false);
 
 
-		$games = array(
-			'precheck' => get_string('game_precheck', 'precheck'),
-		);
+		
+		$games = getGames();
 
 			//element type, key, language, options
 
