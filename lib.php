@@ -31,6 +31,8 @@ function precheck_add_instance($game)
 	global $DB;
     $game->timecreated = time();
 	if (!$game->introformat) $game->introformat = '';
+	
+	$game = uploadSource($game);
 
     if (!$game->id = $DB->insert_record("precheck", $game)) {
         return false;
@@ -58,54 +60,12 @@ function precheck_update_instance($game)
     $game->id = $game->instance;
 	if (!$game->introformat) $game->introformat = '';
 
+
+    $game = uploadSource($game);
+    
     if (!$DB->update_record("precheck", $game)) {
         return false;  // some error occurred
     }
-    
-    
-    $fileInfo = $DB->get_record_sql("
-				SELECT itemid
-				FROM {files}
-				WHERE contextid = ? AND filename = 'test.zip'
-                ORDER BY timecreated DESC LIMIT 0, 1",
-        array(5));
-    
-    $fs = get_file_storage();
-        $fileinfo = array(
-            'contextid' => 5,
-            'component' => 'user',
-            'filearea' => 'draft',
-            'itemid' => intval($fileInfo->itemid),
-            'filepath' => '/',
-            'filename' => 'test.zip');
-        
-    $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
-        $fileinfo['filearea'],
-        $fileinfo['itemid'], $fileinfo['filepath'],
-        $fileinfo['filename']);
-    $localfilename = 'test.zip';
-    $pathname = $CFG->tempdir . '/' . $localfilename;
-    
-    $file->copy_content_to($pathname);
-    
-    $zip = new ZipArchive;
-    $res = $zip->open($pathname);
-    if ($res === TRUE) {
-        $zip->extractTo($CFG->tempdir .'/prechecks');
-        $zip->close();
-        $contents = scandir($CFG->tempdir . '/prechecks',1);
-        directory_copy($CFG->tempdir . '/prechecks/'. $contents[0], $CFG->dirroot . '/../moodle/mod/precheck/html5/'. $contents[0]);
-        rrmdir($CFG->tempdir . '/prechecks');
-    }
-
-    
-    //extract_zip_subdir($pathname, "checkers",  $CFG->tempdir, $CFG->tempdir);
-    
-    
-    if (!$file) {
-        return false; // The file does not exist.
-    }
-    
 
 
 		precheck_after_add_or_update($game);
@@ -506,5 +466,43 @@ function getGames(){
         }
     }
     return $retContent;
+}
+
+function uploadSource($game){
+    
+    global $CFG;
+    
+    $fs = get_file_storage();
+    $fileinfo = array(
+        'contextid' => 5,
+        'component' => 'user',
+        'filearea' => 'draft',
+        'itemid' => $game->attachments,
+        'filepath' => '/',
+        'filename' => 'test.zip');
+    
+    $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
+        $fileinfo['filearea'],
+        $fileinfo['itemid'], $fileinfo['filepath'],
+        $fileinfo['filename']);
+    $localfilename = 'test.zip';
+    $pathname = $CFG->tempdir . '/' . $localfilename;
+    
+    
+    if($file != false){
+        $file->copy_content_to($pathname);
+        
+        $zip = new ZipArchive;
+        $res = $zip->open($pathname);
+        if ($res === TRUE) {
+            $zip->extractTo($CFG->tempdir .'/prechecks');
+            $zip->close();
+            $contents = scandir($CFG->tempdir . '/prechecks',1);
+            directory_copy($CFG->tempdir . '/prechecks/'. $contents[0], $CFG->dirroot . '/../moodle/mod/precheck/html5/'. $contents[0]);
+            rrmdir($CFG->tempdir . '/prechecks');
+        }
+        $game->gametype = $contents[0];
+    }
+     return $game;
 }
 

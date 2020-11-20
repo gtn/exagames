@@ -59,7 +59,7 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 
 		$mform->addElement('select', 'gametype', get_string('gametype', 'precheck'), $games);
 		$mform->addHelpButton('gametype', 'gametype', 'precheck');
-		$mform->addElement('filemanager', 'attachments', get_string('attachment', 'moodle'), null,
+		$mform->addElement('filemanager', 'attachments', get_string('sources', 'precheck'), null,
 		    array('return_types'=> FILE_INTERNAL | FILE_EXTERNAL));
 
 

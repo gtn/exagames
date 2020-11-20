@@ -28,6 +28,7 @@ $string['pluginname'] = 'Precheck';
 $string['modulename'] = 'Precheck';
 $string['modulenameplural'] = 'Precheck';
 $string['pluginadministration'] = 'Precheck administration';
+$string['sources'] = 'Source-files';
 
 
 $string['exagamesname'] = 'Name';
