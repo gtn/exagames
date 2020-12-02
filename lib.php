@@ -470,11 +470,18 @@ function getGames(){
 
 function uploadSource($game){
     
-    global $CFG;
+    global $DB, $CFG, $USER;
+    
+    $fileDB = $DB->get_record_sql("
+				SELECT contextid
+				FROM {files}
+				WHERE userid = ? AND filename = 'test.zip'
+                ORDER BY timecreated DESC LIMIT 0, 1",
+        array($USER->id));
     
     $fs = get_file_storage();
     $fileinfo = array(
-        'contextid' => 5,
+        'contextid' => $fileDB->contextid,
         'component' => 'user',
         'filearea' => 'draft',
         'itemid' => $game->attachments,
