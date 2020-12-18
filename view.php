@@ -25,6 +25,7 @@
 require_once("inc.php");
 
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
+$action = optional_param("action", "", PARAM_TEXT);
 
 
 $out = array();
@@ -53,14 +54,15 @@ if ($id) {
 
 require_login($course->id);
 
-	
 
 
-	//--------------------------------------------------------------------pool3 action
-	$json_string = file_get_contents('./result.json');
+//--------------------------------------------------------------------pool3 action
+
 	
-	// problem mit umlauten
-	$json_a = json_decode($json_string, true);
+$rest_json = file_get_contents("php://input");
+$json_a = json_decode($rest_json, true);
+
+if($json_a['Attempts'] != null){
 	
 	$updateGrade = new StdClass;
 	$updateGrade->rawgrade = $json_a['TrainingsResultInPercent'];
@@ -68,9 +70,9 @@ require_login($course->id);
 	$updateGrade->userid = $USER->id;
 	
 	precheck_grade_item_update($game, $updateGrade);
-	precheck_save_data($json_string, $cm->instance);
+	precheck_save_data($rest_json, $cm->instance);
 	
-	
+}
 
 
 
