@@ -1,10 +1,10 @@
 <?php  // $Id: lib.php,v 1.8 2007/12/12 00:09:46 stronk7 Exp $
 /**
- * Library of functions and constants for module precheck
+ * Library of functions and constants for module webgl
  * This file should have two well differenced parts:
  *   - All the core Moodle functions, neeeded to allow
  *     the module to work integrated in Moodle.
- *   - All the precheck specific functions, needed
+ *   - All the webgl specific functions, needed
  *     to implement all the module logic. Please, note
  *     that, if the module become complex and this lib
  *     grows a lot, it's HIGHLY recommended to move all
@@ -24,9 +24,9 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  * of the new instance.
  *
  * @param object $instance An object from the form in mod.html
- * @return int The id of the newly inserted precheck record
+ * @return int The id of the newly inserted webgl record
  **/
-function precheck_add_instance($game)
+function webgl_add_instance($game)
 {
 	global $DB;
     $game->timecreated = time();
@@ -34,7 +34,7 @@ function precheck_add_instance($game)
 	
 	$game = uploadSource($game);
 
-    if (!$game->id = $DB->insert_record("precheck", $game)) {
+    if (!$game->id = $DB->insert_record("webgl", $game)) {
         return false;
     }
 
@@ -49,7 +49,7 @@ function precheck_add_instance($game)
  * @param object $instance An object from the form in mod.html
  * @return boolean Success/Fail
  **/
-function precheck_update_instance($game)
+function webgl_update_instance($game)
 {
     global $DB, $CFG, $COURSE;
 	
@@ -63,12 +63,12 @@ function precheck_update_instance($game)
 
     $game = uploadSource($game);
     
-    if (!$DB->update_record("precheck", $game)) {
+    if (!$DB->update_record("webgl", $game)) {
         return false;  // some error occurred
     }
 
 
-		precheck_after_add_or_update($game);
+		webgl_after_add_or_update($game);
 
     return true;
 }
@@ -81,10 +81,10 @@ function precheck_update_instance($game)
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
  **/
-function precheck_delete_instance($id) {
+function webgl_delete_instance($id) {
 	global $DB;
 	
-    if (! $game = $DB->get_record("precheck", array("id"=>$id))) {
+    if (! $game = $DB->get_record("webgl", array("id"=>$id))) {
         return false;
     }
 
@@ -92,11 +92,11 @@ function precheck_delete_instance($id) {
 
     # Delete any dependent records here #
 
-    if (! $DB->delete_records("precheck", array("id"=>$game->id))) {
+    if (! $DB->delete_records("webgl", array("id"=>$game->id))) {
         $result = false;
     }
 
-    precheck_grade_item_delete($game);
+    webgl_grade_item_delete($game);
 
 	return $result;
 }
@@ -111,7 +111,7 @@ function precheck_delete_instance($id) {
  * @return null
  * @todo Finish documenting this function
  **/
-function precheck_user_outline($course, $user, $mod, $precheck) {
+function webgl_user_outline($course, $user, $mod, $webgl) {
     return $return;
 }
 
@@ -122,20 +122,20 @@ function precheck_user_outline($course, $user, $mod, $precheck) {
  * @return boolean
  * @todo Finish documenting this function
  **/
-function precheck_user_complete($course, $user, $mod, $precheck) {
+function webgl_user_complete($course, $user, $mod, $webgl) {
     return true;
 }
 
 /**
  * Given a course and a time, this module should find recent activity 
- * that has occurred in precheck activities and print it out. 
+ * that has occurred in webgl activities and print it out. 
  * Return true if there was output, or false is there was none. 
  *
  * @uses $CFG
  * @return boolean
  * @todo Finish documenting this function
  **/
-function precheck_print_recent_activity($course, $isteacher, $timestart) {
+function webgl_print_recent_activity($course, $isteacher, $timestart) {
     global $CFG;
 
     return false;  //  True if anything was printed, otherwise false 
@@ -150,7 +150,7 @@ function precheck_print_recent_activity($course, $isteacher, $timestart) {
  * @return boolean
  * @todo Finish documenting this function
  **/
-function precheck_cron () {
+function webgl_cron () {
     global $CFG;
 
     return true;
@@ -166,52 +166,52 @@ function precheck_cron () {
  *
  *    return $return;
  *
- * @param int precheckid ID of an instance of this module
+ * @param int webglid ID of an instance of this module
  * @return mixed Null or object with an array of grades and with the maximum grade
  **/
-function precheck_grades($precheckid) {
+function webgl_grades($webglid) {
    return NULL;
 }
 
 /**
  * Must return an array of user records (all data) who are participants
- * for a given instance of precheck. Must include every user involved
+ * for a given instance of webgl. Must include every user involved
  * in the instance, independient of his role (student, teacher, admin...)
  * See other modules as example.
  *
- * @param int $precheckid ID of an instance of this module
+ * @param int $webglid ID of an instance of this module
  * @return mixed boolean/array of students
  **/
-function precheck_get_participants($precheckid) {
+function webgl_get_participants($webglid) {
     return false;
 }
 
 /**
- * This function returns if a scale is being used by one precheck
+ * This function returns if a scale is being used by one webgl
  * it it has support for grading and scales. Commented code should be
  * modified if necessary. See forum, glossary or journal modules
  * as reference.
  *
- * @param int $precheckid ID of an instance of this module
+ * @param int $webglid ID of an instance of this module
  * @return mixed
  * @todo Finish documenting this function
  **/
-function precheck_scale_used ($precheckid,$scaleid) {
+function webgl_scale_used ($webglid,$scaleid) {
     $return = false;
    
     return $return;
 }
 
 /**
- * Checks if scale is being used by any instance of precheck.
+ * Checks if scale is being used by any instance of webgl.
  * This function was added in 1.9
  *
  * This is used to find out if scale used anywhere
  * @param $scaleid int
- * @return boolean True if the scale is used by any precheck
+ * @return boolean True if the scale is used by any webgl
  */
-function precheck_scale_used_anywhere($scaleid) {
-    if ($scaleid and record_exists('precheck', 'grade', -$scaleid)) {
+function webgl_scale_used_anywhere($scaleid) {
+    if ($scaleid and record_exists('webgl', 'grade', -$scaleid)) {
         return true;
     } else {
         return false;
@@ -224,7 +224,7 @@ function precheck_scale_used_anywhere($scaleid) {
  *
  * @return boolean true if success, false on error
  */
-function precheck_install() {
+function webgl_install() {
      return true;
 }
 
@@ -234,18 +234,18 @@ function precheck_install() {
  *
  * @return boolean true if success, false on error
  */
-function precheck_uninstall() {
+function webgl_uninstall() {
     return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// Any other precheck functions go here.  Each of them must have a name that 
-/// starts with precheck_
+/// Any other webgl functions go here.  Each of them must have a name that 
+/// starts with webgl_
 /// Remember (see note in first lines) that, if this section grows, it's HIGHLY
 /// recommended to move all funcions below to a new "localib.php" file.
 
 
-function precheck_print_tabs($game, $currenttab)
+function webgl_print_tabs($game, $currenttab)
 {
 	global $CFG, $USER, $DB, $COURSE, $cm;
 
@@ -254,7 +254,7 @@ function precheck_print_tabs($game, $currenttab)
 	$inactive = array();
 	$activated = array();
 
-    $row[] = new tabobject('show', $CFG->wwwroot.'/mod/precheck/view.php?id='.$cm->id, get_string('show'));
+    $row[] = new tabobject('show', $CFG->wwwroot.'/mod/webgl/view.php?id='.$cm->id, get_string('show'));
 
 	$context = context_module::instance($cm->id);
 	if (has_capability('moodle/course:manageactivities', $context)) {
@@ -266,7 +266,7 @@ function precheck_print_tabs($game, $currenttab)
 	    $row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
 	}
 	
-	$row[] = new tabobject('result', $CFG->wwwroot.'/mod/precheck/result.php?cmid='.$cm->id, get_string('result', 'precheck'));
+	$row[] = new tabobject('result', $CFG->wwwroot.'/mod/webgl/result.php?cmid='.$cm->id, get_string('result', 'webgl'));
 
 	if (count($row) > 1) {
 		$tabs[] = $row;
@@ -278,10 +278,10 @@ function precheck_print_tabs($game, $currenttab)
 
 
 
-function precheck_get_game_instance($instanceid)
+function webgl_get_game_instance($instanceid)
 {
 	global $DB;
-	$game = $DB->get_record("precheck", array("id" => $instanceid));
+	$game = $DB->get_record("webgl", array("id" => $instanceid));
 	
 
 		$game->hasHighscore = false;
@@ -298,24 +298,24 @@ function precheck_get_game_instance($instanceid)
  * @param object $quiz object
  * @return object quiz
  */
-function precheck_grade_item_delete($game)
+function webgl_grade_item_delete($game)
 {
     global $CFG;
     require_once $CFG->libdir.'/gradelib.php';
 
-    return grade_update('mod/precheck', $game->course, 'mod', 'precheck', $game->id, 0, NULL, array('deleted'=>1));
+    return grade_update('mod/webgl', $game->course, 'mod', 'webgl', $game->id, 0, NULL, array('deleted'=>1));
 }
 
 /**
- * This function is called at the end of precheck_add_instance
- * and precheck_update_instance, to do the common processing.
+ * This function is called at the end of webgl_add_instance
+ * and webgl_update_instance, to do the common processing.
  *
  * @param object $game the game object.
  */
-function precheck_after_add_or_update($game)
+function webgl_after_add_or_update($game)
 {
     //update related grade item
-    precheck_grade_item_update($game);
+    webgl_grade_item_update($game);
 }
 
 /**
@@ -325,7 +325,7 @@ function precheck_after_add_or_update($game)
  * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return int 0 if ok, error code otherwise
  */
-function precheck_grade_item_update($game, $grades=NULL)
+function webgl_grade_item_update($game, $grades=NULL)
 {
     global $CFG;
 	require_once $CFG->libdir.'/gradelib.php';
@@ -341,12 +341,12 @@ function precheck_grade_item_update($game, $grades=NULL)
         $grades = NULL;
     }
 
-	return grade_update('mod/precheck', $game->course, 'mod', 'precheck', $game->id, 0, $grades, $params);
+	return grade_update('mod/webgl', $game->course, 'mod', 'webgl', $game->id, 0, $grades, $params);
 }
 
 
 
-function precheck_html_to_text($text)
+function webgl_html_to_text($text)
 {
 	$text = str_replace(array("\r", "\n"), '', $text);
 	$text = preg_replace("!<(p|br)[^a-z]*>!iU", "\n", $text);
@@ -373,25 +373,25 @@ if (!function_exists('printr')) {
 	}
 }
 
-function precheck_get_string($string, $library = null)
+function webgl_get_string($string, $library = null)
 {
 	$manager = get_string_manager();
 
-	if ($manager->string_exists($string, "precheck"))
-		return $manager->get_string($string, 'precheck');
+	if ($manager->string_exists($string, "webgl"))
+		return $manager->get_string($string, 'webgl');
 
 	return $manager->get_string($string, $library);
 }
 
-function precheck_save_data($string, $itemid){
+function webgl_save_data($string, $itemid){
     global $USER, $DB;
     
     $record = new stdClass();
     $record->userid = $USER->id;
     $record->itemid = $itemid;
     $record->data = $string;
-    $DB->delete_records('precheck_data', array("userid"=>$USER->id, "itemid"=>$itemid));
-    $DB->insert_record('precheck_data', $record);
+    $DB->delete_records('webgl_data', array("userid"=>$USER->id, "itemid"=>$itemid));
+    $DB->insert_record('webgl_data', $record);
     
 }
 
@@ -458,7 +458,7 @@ function rrmdir($source, $removeOnlyChildren = false)
 
 function getGames(){
     global $CFG;
-    $contents = scandir($CFG->dirroot . '/../moodle/mod/precheck/html5/',1);
+    $contents = scandir($CFG->dirroot . '/../moodle/mod/webgl/html5/',1);
     $retContent = array();
     foreach($contents as $content){
         if($content != "css" && $content != "js" && $content != "." && $content != ".."){
@@ -472,27 +472,33 @@ function uploadSource($game){
     
     global $DB, $CFG, $USER;
     
-    $fileDB = $DB->get_record_sql("
-				SELECT contextid
-				FROM {files}
-				WHERE userid = ? AND filename = 'test.zip'
-                ORDER BY timecreated DESC LIMIT 0, 1",
-        array($USER->id));
+
+    $context = context_user::instance($USER->id);
+    $contextid = $context->id;
     
+
+    $fileDB = $DB->get_record_sql("
+				SELECT filename
+				FROM {files}
+				WHERE mimetype = 'application/zip'
+                ORDER BY timecreated DESC LIMIT 0, 1");
     $fs = get_file_storage();
+    
+    $fielname = $fileDB->filename;
+    
     $fileinfo = array(
-        'contextid' => $fileDB->contextid,
+        'contextid' => $contextid,
         'component' => 'user',
         'filearea' => 'draft',
         'itemid' => $game->attachments,
         'filepath' => '/',
-        'filename' => 'test.zip');
+        'filename' => $fielname);
     
     $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
         $fileinfo['filearea'],
         $fileinfo['itemid'], $fileinfo['filepath'],
         $fileinfo['filename']);
-    $localfilename = 'test.zip';
+    $localfilename = $fielname;
     $pathname = $CFG->tempdir . '/' . $localfilename;
     
     
@@ -502,11 +508,11 @@ function uploadSource($game){
         $zip = new ZipArchive;
         $res = $zip->open($pathname);
         if ($res === TRUE) {
-            $zip->extractTo($CFG->tempdir .'/prechecks');
+            $zip->extractTo($CFG->tempdir .'/webgls');
             $zip->close();
-            $contents = scandir($CFG->tempdir . '/prechecks',1);
-            directory_copy($CFG->tempdir . '/prechecks/'. $contents[0], $CFG->dirroot . '/../moodle/mod/precheck/html5/'. $contents[0]);
-            rrmdir($CFG->tempdir . '/prechecks');
+            $contents = scandir($CFG->tempdir . '/webgls',1);
+            directory_copy($CFG->tempdir . '/webgls/'. $contents[0], $CFG->dirroot . '/../moodle/mod/webgl/html5/'. $contents[0]);
+            rrmdir($CFG->tempdir . '/webgls');
         }
         $game->gametype = $contents[0];
     }

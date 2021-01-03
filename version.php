@@ -21,9 +21,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2020091800;
+$plugin->version = 2020123100;
 $plugin->requires = 2010112400;
 $plugin->cron      = 0;
-$plugin->component = 'mod_precheck';
+$plugin->component = 'mod_webgl';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release  = 'v1.1';

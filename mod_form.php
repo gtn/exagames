@@ -27,7 +27,7 @@
 
 require_once ('moodleform_mod.php');
 
-class mod_precheck_mod_form extends moodleform_mod {
+class mod_webgl_mod_form extends moodleform_mod {
 
 
 	function definition() {
@@ -38,15 +38,15 @@ class mod_precheck_mod_form extends moodleform_mod {
 
 //-------------------------------------------------------------------------------
 $stringman = get_string_manager();
-$strings = $stringman->load_component_strings('mod_precheck', $CFG->lang);
+$strings = $stringman->load_component_strings('mod_webgl', $CFG->lang);
 
-$PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
+$PAGE->requires->strings_for_js(array_keys($strings), 'mod_webgl');
 
 
     /// Adding the "general" fieldset, where all the common settings are showed
     $mform->addElement('header', 'general', get_string('general', 'form'));
     /// Adding the standard "name" field
-    $mform->addElement('text', 'name', get_string('exagamesname', 'precheck'), array('size'=>'64'));
+    $mform->addElement('text', 'name', get_string('exagamesname', 'webgl'), array('size'=>'64'));
 		$mform->setType('name', PARAM_TEXT);
 		$mform->addRule('name', null, 'required', null, 'client');
 		$this->add_intro_editor(false);
@@ -57,9 +57,9 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
 
 			//element type, key, language, options
 
-		$mform->addElement('select', 'gametype', get_string('gametype', 'precheck'), $games);
-		$mform->addHelpButton('gametype', 'gametype', 'precheck');
-		$mform->addElement('filemanager', 'attachments', get_string('sources', 'precheck'), null,
+		$mform->addElement('select', 'gametype', get_string('gametype', 'webgl'), $games);
+		$mform->addHelpButton('gametype', 'gametype', 'webgl');
+		$mform->addElement('filemanager', 'attachments', get_string('sources', 'webgl'), null,
 		    array('return_types'=> FILE_INTERNAL | FILE_EXTERNAL));
 
 

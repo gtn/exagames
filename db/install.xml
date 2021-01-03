@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/precheck/db" VERSION="20120403" COMMENT="XMLDB file for Moodle mod/precheck"
+<XMLDB PATH="mod/webgl/db" VERSION="20120403" COMMENT="XMLDB file for Moodle mod/webgl"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="precheck" COMMENT="default comment for newmodule, please edit me" NEXT="precheck_data">
+    <TABLE NAME="webgl" COMMENT="default comment for newmodule, please edit me" NEXT="webgl_data">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course newmodule activity belongs to" PREVIOUS="id" NEXT="name"/>
@@ -22,7 +22,7 @@
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="precheck_data" COMMENT="default comment for newmodule, please edit me" NEXT="">
+    <TABLE NAME="webgl_data" COMMENT="default comment for newmodule, please edit me" NEXT="">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="userid who edited the item" PREVIOUS="id" NEXT="itemid"/>

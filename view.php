@@ -44,7 +44,7 @@ if ($id) {
 	}
 
 
-	if (! $game = precheck_get_game_instance($cm->instance)) {
+	if (! $game = webgl_get_game_instance($cm->instance)) {
 		error("Game not found");
 	}
 
@@ -56,7 +56,7 @@ require_login($course->id);
 
 
 
-//--------------------------------------------------------------------pool3 action
+//--------------------------------------------------------------------webgl action
 
 	
 $rest_json = file_get_contents("php://input");
@@ -69,8 +69,8 @@ if($json_a['Attempts'] != null){
 	$updateGrade->feedback = "Attempts: ".$json_a['Attempts']."\nTime needed: ". $json_a['TotalTimeInSeconds'];
 	$updateGrade->userid = $USER->id;
 	
-	precheck_grade_item_update($game, $updateGrade);
-	precheck_save_data($rest_json, $cm->instance);
+	webgl_grade_item_update($game, $updateGrade);
+	webgl_save_data($rest_json, $cm->instance);
 	
 }
 
@@ -81,11 +81,11 @@ $context = get_context_instance(CONTEXT_COURSE, $game->course);
 
 
 
-add_to_log($course->id, "precheck", "view", "view.php?id=$cm->id", "$game->id");
+add_to_log($course->id, "webgl", "view", "view.php?id=$cm->id", "$game->id");
 
 /// Print the page header
-$strexagamess = get_string("modulenameplural", "precheck");
-$strexagames  = get_string("modulename", "precheck");
+$strexagamess = get_string("modulenameplural", "webgl");
+$strexagames  = get_string("modulename", "webgl");
 
 $navlinks = array();
 $navlinks[] = array('name' => $strexagamess, 'link' => "index.php?id=$course->id", 'type' => 'activity');
@@ -93,18 +93,18 @@ $navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' =
 
 
 $PAGE->set_url($_SERVER['REQUEST_URI']);
-$PAGE->requires->js('/mod/precheck/js/swfobject.js', true);
+$PAGE->requires->js('/mod/webgl/js/swfobject.js', true);
 
 $stringman = get_string_manager();
-$strings = $stringman->load_component_strings('mod_precheck', 'en');
-$PAGE->requires->strings_for_js(array_keys($strings), 'mod_precheck');
+$strings = $stringman->load_component_strings('mod_webgl', 'en');
+$PAGE->requires->strings_for_js(array_keys($strings), 'mod_webgl');
 
 echo $OUTPUT->header();
 
 //$context = get_context_instance(CONTEXT_COURSE, $game->course);
 // $context = context_module::instance($cm->id);
 
-precheck_print_tabs($game, 'show');
+webgl_print_tabs($game, 'show');
 
 /// Print the main part of the page
 

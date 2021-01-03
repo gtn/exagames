@@ -24,10 +24,10 @@
 ***************************************************************/
 
 // Main
-$string['pluginname'] = 'Precheck';
-$string['modulename'] = 'Precheck';
-$string['modulenameplural'] = 'Precheck';
-$string['pluginadministration'] = 'Precheck administration';
+$string['pluginname'] = 'Pool3';
+$string['modulename'] = 'Pool3';
+$string['modulenameplural'] = 'Pool3';
+$string['pluginadministration'] = 'Pool3 administration';
 $string['sources'] = 'Source-files';
 
 
@@ -36,6 +36,6 @@ $string['gametype'] = 'Game-Type';
 $string['result'] = 'Ergebnisse';
 
 // Games
-$string['game_precheck'] = 'Precheck';
+$string['game_webgl'] = 'Pool3';
 
 

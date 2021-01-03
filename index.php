@@ -4,33 +4,33 @@ require_once("../../config.php");
 require_once("lib.php");
 
 $id = required_param('id', PARAM_INT);   // course
-$PAGE->set_url('/mod/precheck/index.php', array('id'=>$id));
+$PAGE->set_url('/mod/webgl/index.php', array('id'=>$id));
 if (! $course = $DB->get_record("course", array("id"=>$id))) {
 	print_error("Course ID is incorrect");
 }
 
 require_login($course->id);
 
-add_to_log($course->id, "precheck", "view all", "index.php?id=$course->id", "");
+add_to_log($course->id, "webgl", "view all", "index.php?id=$course->id", "");
 
 
 /// Get all required strings
 
-$strprechecks = get_string("modulenameplural", "precheck");
-$strprecheck  = get_string("modulename", "precheck");
+$strwebgls = get_string("modulenameplural", "webgl");
+$strwebgl  = get_string("modulename", "webgl");
 
 
 /// Print the header
 
 $navlinks = array();
-$navlinks[] = array('name' => $strprechecks, 'link' => '', 'type' => 'activity');
+$navlinks[] = array('name' => $strwebgls, 'link' => '', 'type' => 'activity');
 
 $PAGE->navbar->add($course->fullname, new moodle_url('', array('id' => $course->id)));
 
 
 /// Get all the appropriate data
 
-if (! $prechecks = get_all_instances_in_course("precheck", $course)) {
+if (! $webgls = get_all_instances_in_course("webgl", $course)) {
 	die;
 }
 
@@ -54,17 +54,17 @@ if ($course->format == "weeks") {
 	$table->align = array ("left", "left", "left");
 }
 
-foreach ($prechecks as $precheck) {
-	if (!$precheck->visible) {
+foreach ($webgls as $webgl) {
+	if (!$webgl->visible) {
 		//Show dimmed if the mod is hidden
-		$link = "<a class=\"dimmed\" href=\"view.php?id=$precheck->coursemodule\">$precheck->name</a>";
+		$link = "<a class=\"dimmed\" href=\"view.php?id=$webgl->coursemodule\">$webgl->name</a>";
 	} else {
 		//Show normal if the mod is visible
-		$link = "<a href=\"view.php?id=$precheck->coursemodule\">$precheck->name</a>";
+		$link = "<a href=\"view.php?id=$webgl->coursemodule\">$webgl->name</a>";
 	}
 
 	if ($course->format == "weeks" or $course->format == "topics") {
-		$table->data[] = array ($precheck->section, $link);
+		$table->data[] = array ($webgl->section, $link);
 	} else {
 		$table->data[] = array ($link);
 	}
