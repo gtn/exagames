@@ -79,7 +79,7 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_webgl');
 
 echo $OUTPUT->header();
 
-
+webgl_print_tabs($game, 'result');
 
 /// Print the main part of the page
 
