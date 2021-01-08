@@ -458,7 +458,7 @@ function rrmdir($source, $removeOnlyChildren = false)
 
 function getGames(){
     global $CFG;
-    $contents = scandir($CFG->dirroot . '/../moodle/mod/webgl/html5/',1);
+    $contents = scandir($CFG->dirroot . '/mod/webgl/html5/',1);
     $retContent = array();
     foreach($contents as $content){
         if($content != "css" && $content != "js" && $content != "." && $content != ".."){
@@ -511,7 +511,7 @@ function uploadSource($game){
             $zip->extractTo($CFG->tempdir .'/webgls');
             $zip->close();
             $contents = scandir($CFG->tempdir . '/webgls',1);
-            directory_copy($CFG->tempdir . '/webgls/'. $contents[0], $CFG->dirroot . '/../moodle/mod/webgl/html5/'. $contents[0]);
+            directory_copy($CFG->tempdir . '/webgls/'. $contents[0], $CFG->dirroot . '/mod/webgl/html5/'. $contents[0]);
             rrmdir($CFG->tempdir . '/webgls');
         }
         $game->gametype = $contents[0];
