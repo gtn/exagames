@@ -33,7 +33,7 @@ $string['sources'] = 'Source-files';
 
 $string['exagamesname'] = 'Name';
 $string['gametype'] = 'Game-Type';
-$string['result'] = 'Ergebnisse';
+$string['result'] = 'Results';
 
 // Games
 $string['game_webgl'] = 'Pool3';

@@ -45,7 +45,7 @@ $updateGrade->rawgrade = $json_a['TrainingsResultInPercent'];
 $updateGrade->feedback = "Attempts: ".$json_a['Attempts']."\nTime needed: ". $json_a['TotalTimeInSeconds'];
 $updateGrade->userid = $USER->id;
 
-$resret = $DB->get_record("webgl_data", array("itemid"=>$cm->instance, "userid"=>$USER->id));
+$resret = getResultData($cm->instance, $USER->id);
 
 // webgl_grade_item_update($game, $updateGrade);
 // webgl_save_data($json_string, $cm->instance);
@@ -79,27 +79,47 @@ $PAGE->requires->strings_for_js(array_keys($strings), 'mod_webgl');
 
 echo $OUTPUT->header();
 
-//$context = get_context_instance(CONTEXT_COURSE, $game->course);
-// $context = context_module::instance($cm->id);
 
-// webgl_print_tabs($game, 'show');
 
 /// Print the main part of the page
 
-//var_dump($result);
-$html = '<ul id="resulttable">';
-$results = json_decode($resret->data, true);
 
-    foreach($results as $key => $value){
-        if(is_array($value)){
-            $html = recList($value, $html, $key);
-        } else {
-            $html .= '<li>'.$key.': '. $value .'</li>';
+if(isTeacher($USER->id)){
+    $data = getResultData($cm->instance);
+    foreach($data as $record){
+        $user = getUser($record->userid);
+        $html = '<p><b>' . $user->firstname . ' ' . $user->lastname . ':</b></p>';
+        $html .= '<ul id="resulttable">';
+        $results = json_decode($record->data, true);
+        
+        foreach($results as $key => $value){
+            if(is_array($value)){
+                $html = recList($value, $html, $key);
+            } else {
+                $html .= '<li>'.$key.': '. $value .'</li>';
+            }
         }
+        $html .= '</ul>';
+        $html .= '<br/>';
+        
+        echo $html;
     }
-   $html .= '</ul>';
-   
-   echo $html;
+    
+}else{
+    $html = '<ul id="resulttable">';
+    $results = json_decode($resret->data, true);
+    
+        foreach($results as $key => $value){
+            if(is_array($value)){
+                $html = recList($value, $html, $key);
+            } else {
+                $html .= '<li>'.$key.': '. $value .'</li>';
+            }
+        }
+       $html .= '</ul>';
+       
+       echo $html;
+}
    
    function recList($results, $html, $prevkey){
        $html .= '<li><span class="caret">'.$prevkey.'</span>';

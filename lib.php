@@ -519,3 +519,22 @@ function uploadSource($game){
      return $game;
 }
 
+function isTeacher($id){
+    global $DB;
+    $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+    return $DB->record_exists('role_assignments', ['userid' => $id, 'roleid' => $roleid]);
+}
+
+function getResultData($itemid, $userid=-1){
+    global $DB;
+    if($userid == -1){
+        return $DB->get_records('webgl_data', array('itemid' => $itemid));
+    } else {
+        return $DB->get_record("webgl_data", array("itemid" => $itemid, "userid" => $userid));
+    }
+}
+function getUser($userid){
+    global $DB;
+    return $DB->get_record('user', ['id' => $userid]);
+}
+
