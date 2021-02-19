@@ -236,9 +236,6 @@ $context = get_context_instance(CONTEXT_COURSE, $game->course);
 	exit;
 }*/
 
-
-add_to_log($course->id, "exagames", "view", "view.php?id=$cm->id", "$game->id");
-
 /// Print the page header
 $strexagamess = get_string("modulenameplural", "exagames");
 $strexagames  = get_string("modulename", "exagames");

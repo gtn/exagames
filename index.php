@@ -21,9 +21,6 @@ if (! $course = $DB->get_record("course", array("id"=>$id))) {
 
 require_login($course->id);
 
-add_to_log($course->id, "exagames", "view all", "index.php?id=$course->id", "");
-
-
 /// Get all required stringsexagames
 
 $strexagamess = get_string("modulenameplural", "exagames");
