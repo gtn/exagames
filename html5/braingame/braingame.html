@@ -86,6 +86,8 @@
 			var brain_shrinking = true;
 			var cur_brain_inc_width = 32;
 			var cur_brain_inc_height = 32;
+
+
     		function update() {
     			if(isTableFalling) {
     				brainTable.angle -= 3;
@@ -141,7 +143,7 @@
 
     		}
 
-    		    function brainAnimation(brain) {
+    		    /*function brainAnimation(brain) {
 	  				let incWidth = (brain.displayWidth*0.1)/10;
 	    			let incHeight = (brain.displayHeight*0.1)/10;
 	    			brainAnimInterval = setInterval(function()  {
@@ -156,13 +158,95 @@
 
 	    			 	}, 50);
 	    			}, 1300);
-  				}
+  				}*/
 
 
     		var baseCloud;
+    		var growCount = 1;
+
+            class Animator {
+
+                constructor() {
+
+                    this.animations = [];
+                    this.singles = [];
+                }
+
+                start = (cb, duration, delay, postProcessorFunc, postProcessorDelay) => {
+                    let startTime = Date.now() + delay;
+                    this.animations.push({
+                        func: cb,
+                        from: startTime,
+                        duration: duration,
+                        to: startTime+duration,
+						postProcessorFunc: postProcessorFunc,
+						liveTo: startTime+duration+postProcessorDelay
+                    });
+
+                };
+
+
+
+                once = (cb, delay, repeat) => {
+                    this.singles.push({
+						func: cb,
+						startAfter: Date.now() + delay,
+						repeat: repeat,
+						delay: delay
+					})
+				};
+
+
+
+                update = () =>  {
+                    if (this.animations.length > 0) {
+                        for (let i = 0; i < this.animations.length; i++) {
+                            let a = this.animations[i];
+                            let now = Date.now();
+                            if (a.from < now && now < a.to ) {
+                                let prog = (now-a.from) / a.duration;
+                                a.func(prog);
+                            } else if (now >= a.liveTo) {
+                                if(a.postProcessorFunc != null) {
+                                    a.postProcessorFunc();
+								}
+                                this.animations.splice(i, 1);
+
+                            }
+                        }
+                    }
+
+                    if (this.singles.length > 0) {
+                        for (let i = 0; i < this.singles.length; i++) {
+                            let s = this.singles[i];
+                            let now = Date.now();
+                            if (s.startAfter < now ) {
+                                s.func();
+                                this.singles.splice(i, 1);
+
+                                if(s.repeat) {
+
+                                    this.singles.push({
+                                        func: s.func,
+                                        startAfter: now + s.delay,
+                                        repeat: s.repeat,
+										delay: s.delay
+                                    })
+                                }
+                            }
+						}
+					}
+
+                        requestAnimationFrame(this.update);
+
+
+                };
+            }
+
 
     		function create() {
 
+				var animator = new Animator();
 
     			sceneObj = this;
     			game_physics = this.physics;
@@ -176,7 +260,7 @@
     		 	starway_destroyed.visible = false;
     			starway = this.add.image(630, 520, 'starwayBase');
     		    brainTable = this.physics.add.sprite(560, 400, 'brainTable');
- 				brain = this.physics.add.sprite(560, 306, 'brain');
+ 				brain = this.physics.add.sprite(560, 310, 'brain');
     			baseCloud = this.physics.add.sprite(800, 50, 'cloudBase');
 
 
@@ -186,10 +270,13 @@
     		   let baseCloud_xValue = baseCloud.x;
     		    crow.body.immovable = true;
 				baseCloud.body.velocity.set(-130, 0);
-				setInterval(function(){
+				/*setInterval(function(){
 					baseCloud.x = baseCloud_xValue+100;
 				}, 9000);
-
+*/
+                animator.once(function() {
+                    baseCloud.x = baseCloud_xValue+100;
+                }, 9000, true);
 
 
 
@@ -245,13 +332,23 @@
     		   cur_brain_width = brain.displayWidth;
     		   cur_brain_height = brain.displayHeight;
 
-    		   var smirkInterval = setInterval(function() {
+    		   /*var smirkInterval = setInterval(function() {
     		    	einstein.anims.play('smirk', false);
     		    	setTimeout(function() {
     		    		einstein.anims.play('smirk', false);
     		    	}, 400);
 
-    		    }, 5000);
+    		    }, 5000);*/
+
+                animator.once(function() {
+                    einstein.anims.play('smirk', false);
+                }, 5000, true);
+
+                animator.once(function() {
+                    einstein.anims.play('smirk', false);
+                }, 5150, true);
+
+
 
     		    //brainAnimation(brain);
     		    console.log("reached");
@@ -286,35 +383,72 @@
 				 });
 
 				 $(sceneObj).on('startGame', function() {
-    				brain_location = sceneObj.add.image(530, 220, 'brain_indicator');
-    				isBrainLocatorVisible = true;
-    				setTimeout(function() {
-    					isBrainLocatorVisible = false;
-    					setTimeout(function() {
-    						brain_location.destroy();
-    					}, 1000);
-    				}, 3000);
+				     animator.once(function() {
+                         brain_location = sceneObj.add.image(530, 220, 'brain_indicator');
+                         isBrainLocatorVisible = true;
+					 }, 300, false);
+
+                     animator.once(function() {
+                         brain_location.destroy();
+                     }, 4000, false);
+
 				 });
 
 				 $(sceneObj).on('endingAnimation', function() {
 				 	 clipboard.destroy();
 	    		    crow.body.velocity.set(-600, 70);
-	    		    setTimeout(function() {
-	    		    	crow.flipX = true;
-	    		    	crow.y += 200;
-	    		    	crow.body.velocity.set(600, -120);
-	    		    	setTimeout(function() {
-	    		    		crow.flipX = false;
-	    		    		crow.y -= 50;
-	    		    		crow.body.velocity.set(-700, 260);
-	    		    	}, 3000);
-	    		    }, 3000);
+
+                     animator.once(function() {
+                         crow.flipX = true;
+                         console.log("reached 1");
+                         crow.y += 200;
+                         crow.body.velocity.set(600, -120);
+                     }, 3000, false);
+
+                     animator.once(function() {
+                         console.log("reached 2");
+                         crow.flipX = false;
+                         crow.y -= 50;
+                         crow.body.velocity.set(-700, 260);
+                     }, 6000, false);
+
+
+
 
 	   				this.physics.add.overlap(crow, brainTable, function() {
 	    		 	  	isTableFalling = true;
 	    		 	  	brainTable.body.velocity.set(-130, 200);
 	    		 	  	brain.body.velocity.set(0, -100);
-	    		 	  	setTimeout(function() {
+
+                        animator.once(function() {
+                            brain.body.velocity.set(0, 325);
+                        }, 200, false);
+
+                        animator.once(function() {
+                            einstein.body.velocity.set(0, -800);
+                        }, 850, false);
+
+                        animator.once(function() {
+                            brain.body.velocity.set(0,0);
+                            starway.visible = false;
+                            starway_destroyed.visible = true;
+                            starway_destroyed.anims.play('starway_destroyed', false);
+                        }, 800, false);
+
+                        animator.once(function() {
+                            if(score > 0) {
+                                spaceAnimation();
+                            }
+                        }, 2100, false);
+
+                        animator.once(function() {
+                            if(score <= 0) {
+                                riverAnimation();
+                            }
+                        }, 1800, false);
+
+
+	    		 	  	/*setTimeout(function() {
 	    		 	  		brain.body.velocity.set(0, 325);
 	    		 	  		setTimeout(function() {
 	    		 	  			einstein.body.velocity.set(0, -800);
@@ -332,7 +466,7 @@
 	    		 	  			}
 
 	    		 	  		}, 600);
-	    		 	  	}, 200);
+	    		 	  	}, 200);*/
 	    			}, null, this);
 				 });
 
@@ -343,31 +477,60 @@
 
 				 	einstein_sinking.visible = true;
 				 	isEinsteinSinking = true;
-				 	setTimeout(function() {
+
+				 	animator.once(function() {
+                        einstein_sinking.anims.play('einstein-sinking', false);
+                    }, 1000, false);
+
+                     animator.once(function() {
+                         isEinsteinSinking = false;
+                         showScore(score);
+					 }, 5000, false);
+
+				 /*	setTimeout(function() {
 				 		einstein_sinking.anims.play('einstein-sinking', false);
 				 	}, 1000);
 				 	setTimeout(function() {
 				 		isEinsteinSinking = false;
 						showScore(score);
-				 	}, 5000);
+				 	}, 5000);*/
 				 }
 
 				 function spaceAnimation() {
 				 	sceneObj.children.removeAll();
-				 	sceneObj.add.image(401, -1780, 'sky');
+				 	sceneObj.add.image(400.5, -1580, 'sky');
 				 	einstein_flying = sceneObj.physics.add.sprite(500, 210, 'einstein-flying');
 				 	einstein_flying.anims.play('einstein-flying', false);
 				 	isSkyCameraRoll = true;
+
+					//let scrollYTo = score*6.490*50*10.5;
+                     /*if(isSkyCameraRoll) {
+                         this.cameras.main.scrollY -= 10.5;
+                         einstein_flying.y -= 10.5;
+                     }*/
+
+
+					/*let scrollYBase = sceneObj.cameras.main.scrollY;
+					let flyingYBase = einstein_flying.y;
+                     animator.start(function(perc) {
+                         sceneObj.cameras.main.scrollY = scrollYBase - scrollYTo * perc;
+                         einstein_flying.y = flyingYBase - scrollYTo * perc;
+                         /*lamp.displayHeight += riseByHeight * perc;
+                         lamp.displayWidth += riseByWidth * perc;
+                     },  6490*score, 0, null);*/
+
+
+
 				 	setTimeout(function() {
 				 		isSkyCameraRoll = false;
 				 		einstein_flying.anims.play('einstein-in-sky', true);
 				 		einstein_sky_floating = true;
 				 		einstein_flying.body.velocity.set(1, 3);
 				 		showScore(score);
-				 	}, 6490*score);
+				 	}, 6100*score);
 				 }
 				var transCnt = 0;
-    		    function brainAnimation(brain) {
+    		    /*function brainAnimation(brain) {
 	  				let incWidth = (brain.displayWidth*0.1)/10;
 	    			let incHeight = (brain.displayHeight*0.1)/10;
 	    			brainAnimInterval = setInterval(function()  {
@@ -382,7 +545,7 @@
 
 	    			 	}, 50);
 	    			}, 1300);
-  				}
+  				}*/
 
 
 
@@ -394,14 +557,27 @@
 
   				function correctAnimation(brain) {
 
-  					clearInterval(smirkInterval);
+  					//clearInterval(smirkInterval);
   					einstein.visible = false;
  					einstein_thumbs = sceneObj.physics.add.sprite(680, 350, 'einstein_thumbs');
  					lamp = sceneObj.physics.add.sprite( 680, 160, 'lamp');
-					let incWidth = (lamp.displayWidth*0.1)/10;
-	    			let incHeight = (lamp.displayHeight*0.1)/10;
-	    			var shrinkTime;
-  					let lampInterval = setInterval(function() {
+					let riseByWidth = lamp.displayWidth*0.01;
+	    			let riseByHeight = lamp.displayHeight*0.01;
+
+	    			animator.start(function(perc) {
+						lamp.displayHeight += riseByHeight * perc;
+                        lamp.displayWidth += riseByWidth * perc;
+                    }, 800, 0, null);
+
+                    animator.start(function(perc) {
+                        lamp.displayHeight -= riseByHeight * perc;
+                        lamp.displayWidth -= riseByWidth * perc;
+                    }, 800, 800, function() {
+                        lamp.destroy();
+                    }, 1300);
+
+	    			//var shrinkTime;
+  					/*let lampInterval = setInterval(function() {
   						lamp.displayHeight = shrinkTime ? lamp.displayHeight-incHeight : lamp.displayHeight+incHeight;
   						lamp.displayWidth = shrinkTime ? lamp.displayWidth-incWidth : lamp.displayWidth+incWidth;
   						if(lamp.displayWidth > 180)
@@ -412,15 +588,16 @@
   									lamp.destroy();
   								}, 2000);
   						}
-  					}, 20);
+  					}, 20);*/
 
-  					cur_brain_width = cur_brain_width*1.7;
-  					cur_brain_height = cur_brain_height*1.7;
-  					cur_brain_inc_width = cur_brain_inc_width*1.7;
-					cur_brain_inc_height = cur_brain_inc_height*1.7;
+  					cur_brain_width += (cur_brain_width/2)*Math.pow(0.85, growCount);
+  					cur_brain_height += (cur_brain_height/2)*Math.pow(0.85, growCount);
+                    growCount++;
+  					//cur_brain_inc_width = cur_brain_inc_width*1.4;
+					//cur_brain_inc_height = cur_brain_inc_height*1.4;
   					brain.displayWidth = cur_brain_width;
   					brain.displayHeight = cur_brain_height;
-  					brain.y -= 10;
+  					brain.y -= 7;
   				}
 
   			function resetAnimation() {
@@ -435,8 +612,7 @@
   				einstein.visible = true;
   			}
 
-
-
+  			requestAnimationFrame(animator.update);
   			startingScreen = this.add.image(401, 300, 'startingScreen');
   			$('#question-field').css('display', 'none');
 
@@ -517,6 +693,7 @@
 					alert( M.util.get_string('brain_noquestions', 'mod_exagames'));
 					exit();
 				}
+				console.log(questions);
 				questionUpdate();
 
 			});
@@ -555,7 +732,6 @@
 		});
 
 		function questionUpdate() {
-			console.log('score: ' + score);
 			$('#contentContainer').css('pointer-events', '');
 			if(round == questions.length){
 				$('#question-field').remove();
@@ -595,11 +771,14 @@
 						handleAnswer(e, "multiple-choice");
 					});
 			}
+            document.getElementById('question-field').scrollTop =0;
 		}
 
 		function handleAnswer(e, type) {
 			$('#contentContainer').css('pointer-events', 'none');
+			debugger
 			if(type === 'single-choice') {
+
 				singleAlternativeHandler(e, e.currentTarget.id.substr(e.currentTarget.id.length-1));
 			} else if(type === 'multiple-choice') {
 				multipleAlternativesHandler(e);
@@ -621,6 +800,7 @@
 				$('.correct-image').css('background-image', 'url(assets/checked.png)');
 				$(sceneObj).trigger('growBrainEvent');
 				score += (1/questions.length)*questions[round].answers[answerId].fraction;
+				console.log(questions[round]);
 			} else {
 				$('#' + e.currentTarget.attributes[0].value).find('div').css('background-image', 'url(assets/cancel.png)');
 				$(sceneObj).trigger('wrongEvent');
@@ -644,7 +824,15 @@
 			var tempScore = 0;
 			var curAnswerIds = "";
 			var parser = new DOMParser;
-			for(let i = 0; i < checkedBoxes.length; i++) {
+			var maxScoreForQuestion = 0;
+            for (let i = 0; i < questions[round].answers.length; i++) {
+                let frac = Number(questions[round].answers[i].fraction);
+                if (frac > 0.0) {
+                    maxScoreForQuestion += Number(questions[round].answers[i].fraction);
+                }
+			}
+			console.log(maxScoreForQuestion);
+            for(let i = 0; i < checkedBoxes.length; i++) {
 				var box = checkedBoxes[i];
 				if(box.wasChecked) {
 					let answText = box.node[0].textContent;
@@ -657,8 +845,8 @@
 					}
 
 					var file;
-					console.log(questions[round].answers[i].fraction);
-					tempScore += Number(questions[round].answers[i].fraction);
+					//console.log(questions[round].answers[i].fraction);
+					tempScore += Number(questions[round].answers[i].fraction)/maxScoreForQuestion;
 					if(box.alternativeState == true) {
 						file = "checked.png"
 					} else {
@@ -672,12 +860,15 @@
 			}
 			score += (1/questions.length)*tempScore;
 			answers += "&responses[" + questions[round].id + "]=" + curAnswerIds;
-			if(round == questions.length)
-				storeResultScore(function() {
-					$(sceneObj).trigger('endingAnimation');
-				});
+
 			selectedAlternativeAnimation();
 			round++;
+
+            if(round == questions.length)
+                storeResultScore(function() {
+                    $(sceneObj).trigger('endingAnimation');
+                });
+
 			setTimeout(function() {
 				questionUpdate();
 				$(sceneObj).trigger('reset');
@@ -723,9 +914,8 @@
 		}
 
 		function storeResultScore(callback) {
-			console.log(flashvars.gameurl + answers);
 			$.ajax({
-				url: (flashvars.gameurl + "&action=data" +answers),
+				url: (flashvars.gameurl + "&action=data&score=" +score),
 				type: 'POST',
 				error: function(xhr, status, error) {
 					console.log(error);

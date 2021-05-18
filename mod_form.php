@@ -227,15 +227,15 @@ $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('til
 						handleQuizSelectParam();
 						break;
 				case 'braingame':
-						$("div[id*=tileEditor]").parent().parent().css('display', 'none');
+						$("div[id*=tileEditor]").parent().parent().parent().parent().css('display', 'none');
 						break;
 			}
 		}
 
 		function handleQuizSelectParam() {
-			$("div[id*=tileEditor]").parent().parent().css('display', 'none');
+			$("div[id*=tileEditor]").parent().parent().parent().parent().css('display', 'none');
 			if($('#id_gametype').val() == 'tiles') {
-				$("div[id*=tileEditor-" +	$('#id_quizid').val() + "]").parent().parent().css('display', '');
+				$("div[id*=tileEditor-" +	$('#id_quizid').val() + "]").parent().parent().parent().parent().css('display', '');
 				setTimeout(function() {
 					$('#id_quizid').trigger('change');
 				}, 500);

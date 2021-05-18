@@ -1,6 +1,7 @@
 input {
-	height:20px;
-	width:20px;
+	height:16px;
+	width:16px;
+	flex-basis:15%;
 }
 
 #contentWrapper {
@@ -11,6 +12,9 @@ input {
 	border-radius:5px;
 }
 
+#contentWrapper h1, #contentWrapper h3 {
+	color: white;
+}
 
 #imageContainer {
 	max-height:400px;
@@ -71,13 +75,14 @@ input {
 #question-field{
 	height:300px;
 	width:300px;
+	overflow-y: scroll;
 }
 
 .start-button, .restart-button {
 	border-radius:4px;
 	margin:5px;
 	height:40px;
-	width:110px;
+	width: 150px;
 }
 
 
@@ -95,6 +100,7 @@ input {
 .alternative {
 	position: relative;
   cursor: pointer;
+	flex-basis:85%;
   box-sizing: border-box;
   list-style: none;
   margin: .5em 0;
@@ -138,7 +144,9 @@ li.alternative-inline {
 }
 
 .answerContainer {
-	margin:18px;
+	margin:5px 15px;
+	display:flex;
+	align-items:center;
 }
 
 .wrong-image,
@@ -201,7 +209,7 @@ div#scoreContainer {
  	margin: 30px;
     margin-top: 14%;
     line-height: 1.6;
-    color: white;
+    color: white !important;
     font-size: 3em;
     text-align: center;
 }

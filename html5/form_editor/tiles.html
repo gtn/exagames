@@ -260,6 +260,7 @@
 			} else {
 				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
 				let filepath = $('#quizImage').attr('src');
+				filepath = filepath.replace("draftfile.php", "mod/exagames/lib/file_load.php");
 				let ajaxCall = {
 					url: window.parent.getWindowLoc(),
 					method: "GET",

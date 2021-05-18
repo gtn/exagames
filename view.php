@@ -16,7 +16,10 @@ $action  = optional_param('action', '', PARAM_TEXT);
 $out = array();
  global $COURSE, $CFG, $DB, $USER;
 $img_files = array();
-$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW);
+//$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW)
+$playerScore = function_exists('optional_param') ? optional_param('score', 0, PARAM_NUMBER) : optional_param('score', array(), PARAM_RAW);
+$playerScore = $playerScore*100.0;
+
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
 		print_error("Course Module ID was incorrect");
@@ -77,11 +80,11 @@ if ($action == 'data') {
 	// flash handlers
 	$isguest = isguestuser();
 	
-	if (!isguestuser() && $responses) {
+	if (!isguestuser() && $playerScore) {
 		// save game responses
 		
 		// calc grade
-		
+		var_dump($playerScore);
 		$grade = exagames_calc_grade_from_responses($quiz, $responses);
 		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
 		$attemptgrade = quiz_rescale_grade($grade, $quiz);
@@ -102,6 +105,7 @@ if ($action == 'data') {
 
 		require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
 
+
 		$xmlResult = Pro_SimpleXMLElement::create('result');
 		$xmlResult->addChild('score')->setAttributes(array(
 			'percent' => $quiz->sumgrades ? $grade / $quiz->sumgrades : 0,
@@ -120,9 +124,9 @@ if ($action == 'data') {
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		$scoreDb->score = $xmlArr['score']['@attributes']['percent'];
+		//$scoreDb->score = $xmlArr['score']['@attributes']['percent'];
+        $scoreDb->score = $playerScore;
 		$scoreDb->time = time();
-		
 		$DB->insert_record('exagames_scores', $scoreDb);
 		
 		header('Content-Type: text/xml; charset=utf-8');
@@ -130,13 +134,13 @@ if ($action == 'data') {
 
 		exit;
 
-	} elseif (!isguestuser() && $game->hasHighscore && (($score = optional_param('score', -9999, PARAM_INT)) != -9999)) {
+	} elseif (!isguestuser() && $game->hasHighscore && (($playerScore = optional_param('score', 0, PARAM_NUMBER)) != 0)) {
 
 		$scoreDb = new stdClass();
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		$scoreDb->score = $score;
+		$scoreDb->score = $playerScore;
 		$scoreDb->time = time();
 
 		$DB->insert_record('exagames_scores', $scoreDb);
@@ -517,13 +521,17 @@ $res = $DB->get_records_sql($sql);
 if ($res):
 ?>
 <div style="text-align: center; font-size: 18px;margin-top:15px;">
-10 Top Scores:
+5 Top Scores:
 </div>
 <div style="text-align: center;margin:10px 0;">
 <table "align=center" style="margin: 0 auto;">
 <?php
+
+$i = 0;
 foreach ($res as $rs) {
 	echo "<tr><td align=left style='padding-right:15px;'>".fullname($rs)."</td><td align=right>".$rs->score."</td></tr>";
+    if($i++ >= 4)
+        break;
 }
 ?>
 </table>

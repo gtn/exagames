@@ -365,6 +365,10 @@
 				var tempScore = 0;
 				var curAnswerIds = "";
 				var parser = new DOMParser;
+                var maxScoreForQuestion = 0;
+                for (let i = 0; i < questions[round].answers.length; i++) {
+                    maxScoreForQuestion += Number(questions[round].answers[i].fraction);
+                }
 				for(var i = 0; i < checkedBoxes.length; i++) {
 					var box = checkedBoxes[i];
 
@@ -379,7 +383,7 @@
 						}
 
 						var file;
-						tempScore += Number(questions[round].answers[i].fraction);
+						tempScore += Number(questions[round].answers[i].fraction)/maxScoreForQuestion;
 						if(box.alternativeState) {
 							file = "checked.png"
 						} else {
@@ -455,9 +459,11 @@
 			}
 
 			function storeResultScore() {
-				console.log(flashvars.gameurl + answers);
-				$.ajax({
-					url: (flashvars.gameurl + "&action=data" +answers + "&time=" + timeScore),
+
+				
+
+                $.ajax({
+					url: (flashvars.gameurl + "&action=data&score=" +score + "&time=" + timeScore),
 					type: 'POST',
 					error: function(xhr, status, error) {
 						console.log(error);
