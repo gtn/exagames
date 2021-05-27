@@ -1,4 +1,4 @@
-This activity is for Moodle 2.x-versions, it will not work in Moodle 1.9 (or below)
+This activity is for Moodle 3.8+
 
 * exabis games - Bugs, Feature Requests, and Improvements *
 
