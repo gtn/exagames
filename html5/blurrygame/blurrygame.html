@@ -28,6 +28,8 @@
 			var answers = "";
 			var questionCnt = 0;
 			var gamedataurl = flashvars.gamedataurl;
+
+            console.log(gamedataurl);
 			var ajaxCall = {
 					url: gamedataurl,
 					success: function(data, status, xhr) {
@@ -66,10 +68,10 @@
 							let type = null;
 							switch(questionNodes[i].getAttribute('type')) {
 								case 'multichoice':
-									if(isMultiChoiceMultiAnswersType(answers)) {
-										type='multiple-choice-multiple-answer';
-									} else {
-										type='multiple-choice-single-answer';
+                                    if(questionNodes[i].getAttribute('single') == '1') {
+                                        type='multiple-choice-single-answer';
+                                    } else {
+                                        type='multiple-choice-multiple-answer';
 									}
 									break;
 								case 'truefalse':
@@ -92,6 +94,8 @@
 											difficulty: questionNodes[i].childNodes[1].childNodes[1].innerHTML,
 											displayOrder: questionNodes[i].childNodes[1].childNodes[3].innerHTML
 										});
+										console.log(questionObj);
+
 										questions.push(questionObj);
 									} else {
 										console.log("ERROR: Filepath to image is empty!");
@@ -288,12 +292,11 @@
 					$('.alternative').click(function(e) {
                         	setScreenDisabled(true);
 							timeScore += curPoints;
-							console.log("Added " + curPoints);
 							clearInterval(blurInterval);
 							blurInterval = undefined;
 							handleAnswer(e, "single-choice");
 						});
-				} else if(actQuestion.type === 'multiple-choice-multiple-answer') {
+				} else if(actQuestion.type === 'multiple-choice-multiple-answer' || actQuestion.type === 'multiple-choice-single-answer') {
 					var domAppend = '<div id="answerlist">';
 					for(var i = 0; i < actQuestion.answers.length; i++) {
 						if(actQuestion.answers[i].fraction > 0) {
@@ -308,10 +311,13 @@
 					$('#loginButton').click(function(e) {
 							setScreenDisabled(true);
 							timeScore += curPoints;
-							console.log("Added " + curPoints);
 							clearInterval(blurInterval);
 							blurInterval = undefined;
-							handleAnswer(e, "multiple-choice");
+				
+						handleAnswer(e, "multiple-answer");
+
+
+
 						});
 				}
 			}
@@ -320,10 +326,10 @@
 
 			function handleAnswer(e, type) {
 				$('#startAnim-' + startButtonCnt).css('pointer-events', 'none');
-				if(type === 'single-choice') {
+				if(type === 'single-choice' ) {
 				singleAlternativeHandler(e, e.currentTarget.id.substr(e.currentTarget.id.length-1));
-				} else if(type === 'multiple-choice') {
-					multipleAlternativesHandler(e);
+				} else if(type === 'multiple-answer') {
+					multipleAnswersAlternativesHandler(e);
 				}
 			}
 
@@ -359,7 +365,9 @@
 				}, EVALUATION_DISPLAY_DURATION);
 			}
 
-			function multipleAlternativesHandler(e) {
+
+
+			function multipleAnswersAlternativesHandler(e) {
 
 				var checkedBoxes = getCheckedBoxes();
 				var tempScore = 0;

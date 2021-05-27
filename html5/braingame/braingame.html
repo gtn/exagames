@@ -658,15 +658,15 @@
 							}
 							let type = null;
 							switch(questionNodes[i].getAttribute('type')) {
-								case 'multichoice':
-									if(isMultiChoiceMultiAnswersType(answers)) {
-										console.log("multichoice multi answers");
-										type='multiple-choice-multiple-answer';
-									} else {
-										console.log("multichoice single answers");
-										type='multiple-choice-single-answer';
-									}
-									break;
+                                case 'multichoice':
+                          
+
+                                    if(questionNodes[i].getAttribute('single') == '1') {
+                                        type='multiple-choice-single-answer';
+                                    } else {
+                                        type='multiple-choice-multiple-answer';
+                                    }
+                                    break;
 								case 'truefalse':
 									console.log("truefalse");
 									type = 'multiple-choice-single-answer';
