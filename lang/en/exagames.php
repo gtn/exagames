@@ -45,6 +45,7 @@ There are 2 games to choose from currently:
 NOTE: The Exaclicks game type is configured within the exabis game activity. Any Images uploaded to this course (as resources or inside folders) can be used for the configuration of the questions.';
 
 // Edit Module Instance
+$string['attachment'] = 'Filemanager';
 $string['exagamesintro'] = 'Intro';
 $string['exagamesname'] = 'Name';
 $string['noquizzesincourse'] = 'Please create {$a->linkTag}a new quiz</a> first, before you add an Exabis Game!';

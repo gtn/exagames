@@ -16,10 +16,7 @@ $action  = optional_param('action', '', PARAM_TEXT);
 $out = array();
  global $COURSE, $CFG, $DB, $USER;
 $img_files = array();
-//$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW)
-$playerScore = function_exists('optional_param') ? optional_param('score', 0, PARAM_NUMBER) : optional_param('score', array(), PARAM_RAW);
-$playerScore = $playerScore*100.0;
-
+$responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW);
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
 		print_error("Course Module ID was incorrect");
@@ -80,11 +77,11 @@ if ($action == 'data') {
 	// flash handlers
 	$isguest = isguestuser();
 	
-	if (!isguestuser() && $playerScore) {
+	if (!isguestuser() && $responses) {
 		// save game responses
 		
 		// calc grade
-		var_dump($playerScore);
+		
 		$grade = exagames_calc_grade_from_responses($quiz, $responses);
 		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
 		$attemptgrade = quiz_rescale_grade($grade, $quiz);
@@ -105,16 +102,15 @@ if ($action == 'data') {
 
 		require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
 
-
 		$xmlResult = Pro_SimpleXMLElement::create('result');
 		$xmlResult->addChild('score')->setAttributes(array(
-			'percent' => $quiz->sumgrades ? $grade / $quiz->sumgrades : 0,
+			'percent' => $grade / $quiz->sumgrades * 100,
 			'sumgrades' => $quiz->sumgrades,
 			'grade' => $grade
 		));
 		// Todo: Feedback
 
-		$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+		$context = context_block::instance(CONTEXT_MODULE, $cm->id);
 		$xmlResult->feedback = quiz_feedback_for_grade($attemptgrade, $quiz, $context);
 
 		$json = json_encode($xmlResult);
@@ -124,9 +120,9 @@ if ($action == 'data') {
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		//$scoreDb->score = $xmlArr['score']['@attributes']['percent'];
-        $scoreDb->score = $playerScore;
-		$scoreDb->time = time();
+		$scoreDb->score = $xmlArr['score']['@attributes']['percent'];
+        $scoreDb->time = time();
+		
 		$DB->insert_record('exagames_scores', $scoreDb);
 		
 		header('Content-Type: text/xml; charset=utf-8');
@@ -134,13 +130,13 @@ if ($action == 'data') {
 
 		exit;
 
-	} elseif (!isguestuser() && $game->hasHighscore && (($playerScore = optional_param('score', 0, PARAM_NUMBER)) != 0)) {
+	} elseif (!isguestuser() && $game->hasHighscore && (($score = optional_param('score', -9999, PARAM_INT)) != -9999)) {
 
 		$scoreDb = new stdClass();
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		$scoreDb->score = $playerScore;
+		$scoreDb->score = $score;
 		$scoreDb->time = time();
 
 		$DB->insert_record('exagames_scores', $scoreDb);
@@ -222,7 +218,7 @@ if ($action == 'data') {
 	}
 }
 
-$context = get_context_instance(CONTEXT_COURSE, $game->course);
+$context = context_block::instance(CONTEXT_COURSE, $game->course);
 /*if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
 	$questionConfig = new stdClass();
 	$questionConfig->id = $questionId;
@@ -514,7 +510,7 @@ echo '
 }
 $sql = "SELECT s.id, s.score, u.firstname, u.lastname ".
 	"FROM {exagames_scores} s JOIN {user} u ON u.id=s.userid ".
-	"WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."' ORDER BY score DESC LIMIT 0,10";
+	"WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."' ORDER BY score DESC LIMIT 0,5";
 
 $res = $DB->get_records_sql($sql);
 
@@ -526,12 +522,8 @@ if ($res):
 <div style="text-align: center;margin:10px 0;">
 <table "align=center" style="margin: 0 auto;">
 <?php
-
-$i = 0;
 foreach ($res as $rs) {
-	echo "<tr><td align=left style='padding-right:15px;'>".fullname($rs)."</td><td align=right>".$rs->score."</td></tr>";
-    if($i++ >= 4)
-        break;
+	echo "<tr><td align=left style='padding-right:15px;'>".$rs->firstname." ".$rs->lastname."</td><td align=right>".$rs->score."</td></tr>";
 }
 ?>
 </table>
