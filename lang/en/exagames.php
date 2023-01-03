@@ -82,3 +82,4 @@ $string['tiles_simulateButton'] = 'Simulate';
 $string['tiles_resetButton'] = 'Reset';
 $string['tiles_saveButton'] = 'Save';
 $string['tiles_saveText'] = 'Configuration saved!';
+$string['tiles_noConfig'] = 'No config saved!';

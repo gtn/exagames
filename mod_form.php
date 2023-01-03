@@ -149,7 +149,10 @@ class mod_exagames_mod_form extends moodleform_mod
                 $urlParams .= isset($content_url) && $content_url != null ? "content_url=$content_url&" : "";
                 $urlParams .= isset($display_order) && $display_order != null ? "display_order=$display_order&" : "";
                 $urlParams .= isset($difficulty) && $difficulty != null ? "difficulty=$difficulty&" : "";
-                $urlParams .= isset($question_id) && $question_id != null ? "question_id=$question_id" : "";
+                $urlParams .= isset($question_id) && $question_id != null ? "question_id=$question_id&" : "";
+
+                // save the language strings as well, since M.util does not work
+                $urlParams .= "no_config_safed_text=" . get_string('tiles_noConfig', 'exagames') . "&";
 
                 $tilesEditor[] = $mform->createElement("html", '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
