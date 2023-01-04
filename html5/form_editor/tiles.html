@@ -237,19 +237,20 @@
 		}
 		function showConfiguredStatus(configuredStatus) {
 			let noConfigSafedText = url.searchParams.get("no_config_safed_text");
+			let configSafedText = url.searchParams.get("config_safed_text");
+			let editConfigSafedText = url.searchParams.get("edit_config_safed_text");
 			switch(configuredStatus) {
 				case 1:
 						$('#configurationState').css('background-color', 'green');
-						$('#configurationState').html('Konfiguration gespeichert');
+						$('#configurationState').html(configSafedText);
 						break;
 				case 0:
 						$('#configurationState').css('background-color', '#b40202');
-						// $('#configurationState').html('Keine Konfiguration gespeichert');
 						$('#configurationState').html(noConfigSafedText);
 						break;
 				case 2:
 						$('#configurationState').css('background-color', 'orange');
-						$('#configurationState').html('In Bearbeitung (Nicht gespeichert)');
+						$('#configurationState').html(editConfigSafedText);
 						break;
 			}
 		}

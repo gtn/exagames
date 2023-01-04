@@ -87,3 +87,4 @@ $string['tiles_resetButton'] = 'Reset';
 $string['tiles_saveButton'] = 'Speichern';
 $string['tiles_saveText'] = 'Konfiguration gespeichert!';
 $string['tiles_noConfig'] = 'Keine Konfiguration gespeichert!';
+$string['tiles_editConfig'] = 'In Bearbeitung (nicht gespeichert)';

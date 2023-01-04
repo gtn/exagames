@@ -153,6 +153,8 @@ class mod_exagames_mod_form extends moodleform_mod
 
                 // save the language strings as well, since M.util does not work
                 $urlParams .= "no_config_safed_text=" . get_string('tiles_noConfig', 'exagames') . "&";
+                $urlParams .= "config_safed_text=" . get_string('tiles_saveText', 'exagames') . "&";
+                $urlParams .= "edit_config_safed_text=" . get_string('tiles_editConfig', 'exagames') . "&";
 
                 $tilesEditor[] = $mform->createElement("html", '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
