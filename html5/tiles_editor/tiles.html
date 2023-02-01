@@ -235,10 +235,14 @@
 		}
 
 		function saveConfiguration() {
+			let noSquareSelectedText = url.searchParams.get("no_square_selected_text");
+			let noDifficultySelectedText = url.searchParams.get("no_difficulty_selected_text");
+			let configurationSaved = url.searchParams.get("configuration_saved");
+
 			if(clickedTiles.length < 100) {
-				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!", "darkred");
+				showStatusText(noSquareSelectedText, "darkred");
 			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
-				showStatusText("Fehler: Kein Schwierigkeitsgrad (langssam, mittel oder schnell) gewählt!", "darkred");
+				showStatusText(noDifficultySelectedText, "darkred");
 			} else {
 				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
 				console.log(actRadioVal);
@@ -252,7 +256,7 @@
 						difficulty: actRadioVal
 					},
 					success: function(data, status, xhr) {
-						showStatusText("Konfiguration wurde gespeichert!", "green");
+						showStatusText(configurationSaved, "green");
 					},
 					error: function(xhr, status, error) {
 						console.log("error");

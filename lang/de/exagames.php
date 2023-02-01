@@ -88,3 +88,6 @@ $string['tiles_saveButton'] = 'Speichern';
 $string['tiles_saveText'] = 'Konfiguration gespeichert!';
 $string['tiles_noConfig'] = 'Keine Konfiguration gespeichert!';
 $string['tiles_editConfig'] = 'In Bearbeitung (nicht gespeichert)';
+$string['tiles_noSquareSelected'] = 'Es wurde noch keine Fläche markiert!';
+$string['tiles_noDifficultySelected'] = 'Es wurde noch kein Schwierigkeitsgrad ausgewählt!';
+$string['configurationSaved'] = 'Die Konfiguration wurde gespeichert!';

@@ -84,3 +84,6 @@ $string['tiles_saveButton'] = 'Save';
 $string['tiles_saveText'] = 'Configuration saved!';
 $string['tiles_noConfig'] = 'No config saved!';
 $string['tiles_editConfig'] = 'In progress (not saved)';
+$string['tiles_noSquareSelected'] = 'No squares were selected!';
+$string['tiles_noDifficultySelected'] = 'No difficulty was selected!';
+$string['configurationSaved'] = 'The configuration was saved!';
