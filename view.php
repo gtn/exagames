@@ -76,7 +76,8 @@ if ($action == 'translations') {
 if ($action == 'data') {
 	// flash handlers
 	$isguest = isguestuser();
-	
+
+    //not working at the moment
 	if (!isguestuser() && $responses) {
 		// save game responses
 		
@@ -90,6 +91,7 @@ if ($action == 'data') {
 		$updateGrade = new StdClass;
 		$updateGrade->rawgrade = $grade;
 		$updateGrade->userid = $USER->id;
+        echo "<script>alert('$grade')</script>";
 		exagames_grade_item_update($game, $updateGrade);
 		exagames_quiz_attempt($game, $updateGrade);
 
@@ -112,6 +114,7 @@ if ($action == 'data') {
 
 		$context = context_block::instance(CONTEXT_MODULE, $cm->id);
 		$xmlResult->feedback = quiz_feedback_for_grade($attemptgrade, $quiz, $context);
+        echo "<script>console.log('$xmlResult->feedback')</script>";
 
 		$json = json_encode($xmlResult);
 		$xmlArr = json_decode($json,TRUE);

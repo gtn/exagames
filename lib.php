@@ -294,39 +294,34 @@ function exagames_print_tabs($game, $currenttab)
 
 function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
-
 	$quizid = (int)$quizid;
 
-	if (!$quiz = $DB->get_record("quiz", array("id"=>$quizid))) {
+    $questions = $DB->get_records_sql("SELECT qu.* FROM mdl_question_bank_entries as en
+    inner join mdl_question_versions as qv on en.id = qv.questionbankentryid
+    inner join mdl_question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$quizid]);
+
+    if ($questions == null) {
 		print_error('quiznotfound');
 	}
 
-	
-	/*if ($quiz->shufflequestions) {
-		require_once $CFG->dirroot.'/mod/quiz/locallib.php';
-		$quiz->questions = quiz_repaginate($quiz->questions, 0, true);
-	}*/
-
-	
-
 	// read questions accoridng to the sorting
+    $quiz->id = $quizid;
 	$quiz->questions = array();
 	$quiz->sumgrades = 0;
 	
-	$quizobj = quiz::create($quiz->id, $USER->id);
+	/*$quizobj = quiz::create($quiz->id, $USER->id);
 
 	$quizobj->preload_questions();
-    $quizobj->load_questions();
-    foreach ($quizobj->get_questions() as $i => $questiondata)
+    $quizobj->load_questions();*/
+    foreach ($questions as $i => $question)
 	{
-		$question = question_bank::make_question($questiondata);
-
+		$question = question_bank::make_question($question);
+        $question->answers = $DB->get_records_sql("SELECT qaw.id, qaw.answer, qaw.fraction FROM mdl_question as qu inner join mdl_question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
 		// only load multichoice and truefalse
 		if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question))
 			continue;
 			
-		$question->maxmark = $questiondata->maxmark ? $questiondata->maxmark : $question->defaultmark;
-		
+		$question->maxmark = $question->maxmark ? $question->maxmark : $question->defaultmark;
 		$quiz->sumgrades += $question->maxmark;
 		$quiz->questions[$question->id] = $question;
 		
@@ -335,14 +330,12 @@ function exagames_load_quiz($quizid) {
 		$question->difficulty = $questionExtraData ? $questionExtraData->difficulty : '';
 		$question->content_url = $questionExtraData ? $questionExtraData->content_url : '';
 		$question->display_order = $questionExtraData ? $questionExtraData->display_order : '';
-	}
 
-	foreach ($quiz->questions as $question) {
-        // shuffle answers?
-		if (!empty($question->answers) && $quiz->shuffleanswers && !empty($question->shuffleanswers)) {
-			$question->answers = swapshuffle_assoc($question->answers);
+        if (!empty($question->answers) && $question->shuffleanswers && !empty($question->shuffleanswers)) {
+            $question->answers = swapshuffle_assoc($question->answers);
         }
 	}
+
 	//echo "<pre>";
 	//var_dump($quiz);
 	return $quiz;
@@ -462,6 +455,8 @@ function exagames_quiz_attempt($game, $grade)
 	
 	$quiz = exagames_load_quiz($game->quizid);
 
+    echo"<script>alert('$game->quizid')</script>";
+
 	$attemptnum = 1 + $DB->get_field_sql('SELECT MAX(attempt) FROM {quiz_attempts} WHERE quiz=? AND userid=?', array($game->quizid, $grade->userid));
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
 	
@@ -476,8 +471,8 @@ function exagames_quiz_attempt($game, $grade)
 	// copied from question/engine/datalib.php: public function insert_questions_usage_by_activity(question_usage_by_activity $quba)
 	// create a new question usage, and use that id to create a quiz attempt
 	// then we can delete the question usage.
-	$cm = get_coursemodule_from_instance('quiz', $quiz->id, $quiz->course, false, MUST_EXIST);
-	$context = context_module::instance($cm->id);
+	$cm = get_coursemodule_from_instance('question_category', $quiz->id, $quiz->course, false, MUST_EXIST);
+    $context = context_module::instance($cm->id);
 	$record = new stdClass();
 	$record->contextid = $context->id;
 	$record->component = 'mod_quiz';

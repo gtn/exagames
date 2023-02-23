@@ -256,10 +256,15 @@
 		}
 
 		function saveConfiguration() {
+			let noSquareSelected = url.searchParams.get("tiles_noSquareSelected");
+			let noDifficultySelectedText = url.searchParams.get("no_difficulty_selected_text");
+			let configurationSaved = url.searchParams.get("configuration_saved");
+			let noConfigurationSaved = url.searchParams.get("no_configuration_saved");
+
 			if(clickedTiles.length < 100) {
-				showStatusText("Fehler: Nicht alle Quadrate sind festgelegt!");
+				showStatusText(noSquareSelected);
 			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
-				showStatusText("Fehler: Kein Schwierigkeitsgrad gewählt!");
+				showStatusText(noDifficultySelectedText);
 			} else {
 				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
 				let filepath = $('#quizImage').attr('src');
@@ -275,12 +280,12 @@
 						questionid: url.searchParams.get("question_id"),
 					},
 					success: function(data, status, xhr) {
-						showStatusText("Konfiguration wurde gespeichert!");
+						showStatusText(configurationSaved);
 						showConfiguredStatus(1);
 					},
 					error: function(xhr, status, error) {
 						console.log("error");
-						alert("Error @ saving configuration.");
+						alert(noConfigurationSaved);
 					}
 				};
 				$.ajax(ajaxCall);

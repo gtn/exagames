@@ -62,7 +62,51 @@ class mod_exagames_mod_form extends moodleform_mod
         */
 
         /// Quiz Dropdown
-        $quizzes = array();
+        $questions = array();
+        $questionBankNames = array();
+        $firstBankId = null;
+        $urlQuizId = optional_param('quizId', 0, PARAM_INT); // Course Module ID, or
+        if ($urlQuizId != null) $firstBankId = $urlQuizId;
+        if($recs = $DB->get_records_sql("SELECT ca.* FROM mdl_question_bank_entries as en inner join mdl_question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
+            foreach ($recs as $rec) {
+                if ($firstBankId == null) {
+                    $firstBankId = $rec->id;
+                }
+                $qtest = $DB->get_records_sql("SELECT qu.* FROM mdl_question_bank_entries as en
+    inner join mdl_question_versions as qv on en.id = qv.questionbankentryid
+    inner join mdl_question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$urlQuizId]);
+                $questions[$rec->id] = $rec->name;
+                $qDetails = new stdClass();
+                $qNameArr = array();
+                if ($rec->id == $urlQuizId) {
+                    foreach ($qtest as $q) {
+                        $curDetails = $DB->get_record('exagames_question', array('id' => $q->id), $fields = 'difficulty, display_order, content_url', $strictness = IGNORE_MISSING);
+                        if ($curDetails) {
+                            $qDetails->difficulty = $curDetails->difficulty;
+                            $qDetails->display_order = $curDetails->display_order;
+                            $qDetails->content_url = $curDetails->content_url;
+                            $qDetails->name = $q->name;
+                            $qDetails->id = $q->id;
+                        } else {
+                            $qDetails = new stdClass();
+                            $qDetails->difficulty = "";
+                            $qDetails->display_order = "";
+                            $qDetails->content_url = "";
+                            $qDetails->name = $q->name;
+                            $qDetails->id = $q->id;
+                        }
+                        $qNameArr[] = clone $qDetails;
+                    }
+                    $qObject = new stdClass();
+                    $qObject->questionDetails = $qNameArr;
+                    $qObject->quizName = $rec->name;
+
+                    $questionBankNames[$rec->id] = $qObject;
+                }
+            }
+        }
+
+        /*$quizzes = array();
         $quizzes_questionNames = array();
         $firstQuizId = null;
         $urlQuizId = optional_param('quizId', 0, PARAM_INT); // Course Module ID, or
@@ -71,10 +115,8 @@ class mod_exagames_mod_form extends moodleform_mod
             foreach ($recs as $rec) {
                 if ($firstQuizId == null) {
                     $firstQuizId = $rec->id;
-
                 }
                 $quizzes[$rec->id] = $rec->name;
-                $quizObj = quiz::create($rec->id, $USER->id);
                 $quizObj->preload_questions();
                 $quizObj->load_questions();
                 $qDetails = new stdClass();
@@ -105,7 +147,7 @@ class mod_exagames_mod_form extends moodleform_mod
 
                 $quizzes_questionNames[$rec->id] = $qObject;
             }
-        }
+        }*/
 
         /*if (!$quizzes) {
             // dirty as moodle: link to add quiz if no quiz was found in this course!
@@ -120,7 +162,7 @@ class mod_exagames_mod_form extends moodleform_mod
         }*/
 
 
-        $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $quizzes);
+        $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $questions);
         $mform->addHelpButton('quizid', 'quizid', 'exagames');
         $mform->addRule('quizid', null, 'required', null, 'client');
 
@@ -136,8 +178,8 @@ class mod_exagames_mod_form extends moodleform_mod
 
         //$quizLen = count($quizzes_questionNames[$firstQuizId]->questionDetails);
 
-        foreach ($quizzes_questionNames as $quizKey => $quizzes) {
-            foreach ($quizzes->questionDetails as $questKey => $qDetails) {
+        foreach ($questionBankNames as $quizKey => $questions) {
+            foreach ($questions->questionDetails as $questKey => $qDetails) {
                 $content_url = $qDetails->content_url;
                 $display_order = $qDetails->display_order;
                 $difficulty = $qDetails->difficulty;
@@ -150,11 +192,16 @@ class mod_exagames_mod_form extends moodleform_mod
                 $urlParams .= isset($display_order) && $display_order != null ? "display_order=$display_order&" : "";
                 $urlParams .= isset($difficulty) && $difficulty != null ? "difficulty=$difficulty&" : "";
                 $urlParams .= isset($question_id) && $question_id != null ? "question_id=$question_id&" : "";
+                $urlParams .= isset($responses) && $responses != null ? "$responses" : "";
 
                 // save the language strings as well, since M.util does not work
                 $urlParams .= "no_config_safed_text=" . get_string('tiles_noConfig', 'exagames') . "&";
                 $urlParams .= "config_safed_text=" . get_string('tiles_saveText', 'exagames') . "&";
                 $urlParams .= "edit_config_safed_text=" . get_string('tiles_editConfig', 'exagames') . "&";
+                $urlParams .= "no_square_selected_text=" . get_string('tiles_noSquareSelected', 'exagames') . "&";
+                $urlParams .= "no_difficulty_selected_text=" . get_string('tiles_noDifficultySelected', 'exagames') . "&";
+                $urlParams .= "configuration_saved=" . get_string('configurationSaved', 'exagames') . "&";
+                $urlParams .= "no_configuration_saved=" . get_string('noConfigurationSaved', 'exagames') . "&";
 
                 $tilesEditor[] = $mform->createElement("html", '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
@@ -204,7 +251,7 @@ class mod_exagames_mod_form extends moodleform_mod
 
             });
 
-            let quizzes = <?php echo json_encode($quizzes_questionNames); ?>;
+            let quizzes = <?php echo json_encode($questionBankNames); ?>;
 
             let url_string = window.location.href;
             let url = new URL(url_string);
@@ -212,8 +259,10 @@ class mod_exagames_mod_form extends moodleform_mod
             var loc = <?php echo json_encode($url); ?>;
 
             $(document).ready(function () {
-
-
+                console.log("started");
+                if(url.searchParams.get("quizId")){
+                    $('#id_quizid').val(url.searchParams.get("quizId"));
+                }
                 handleGameTypeParam();
                 handleQuizSelectParam();
 
@@ -223,6 +272,8 @@ class mod_exagames_mod_form extends moodleform_mod
 
                 $('#id_quizid').on('change', function () {
                     handleQuizSelectParam();
+                    url.searchParams.set("quizId", $('#id_quizid').val());
+                    window.location.replace(url);
                 });
 
             });
@@ -241,6 +292,7 @@ class mod_exagames_mod_form extends moodleform_mod
             function handleQuizSelectParam() {
                 $("div[id*=tileEditor]").parent().parent().css('display', 'none');
                 if ($('#id_gametype').val() == 'tiles') {
+                    console.log($("div[id*=tileEditor-" + $('#id_quizid').val() + "]"));
                     $("div[id*=tileEditor-" + $('#id_quizid').val() + "]").parent().parent().css('display', '');
                     setTimeout(function () {
                         $('#id_quizid').trigger('change');
