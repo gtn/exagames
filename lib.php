@@ -296,9 +296,9 @@ function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
 	$quizid = (int)$quizid;
 
-    $questions = $DB->get_records_sql("SELECT qu.* FROM mdl_question_bank_entries as en
-    inner join mdl_question_versions as qv on en.id = qv.questionbankentryid
-    inner join mdl_question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$quizid]);
+    $questions = $DB->get_records_sql("SELECT qu.* FROM {$CFG->prefix}question_bank_entries as en
+    inner join {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
+    inner join {$CFG->prefix}question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$quizid]);
 
     if ($questions == null) {
 		print_error('quiznotfound');
@@ -316,7 +316,7 @@ function exagames_load_quiz($quizid) {
     foreach ($questions as $i => $question)
 	{
 		$question = question_bank::make_question($question);
-        $question->answers = $DB->get_records_sql("SELECT qaw.id, qaw.answer, qaw.fraction FROM mdl_question as qu inner join mdl_question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
+        $question->answers = $DB->get_records_sql("SELECT qaw.id, qaw.answer, qaw.fraction FROM {$CFG->prefix}question as qu inner join {$CFG->prefix}question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
 		// only load multichoice and truefalse
 		if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question))
 			continue;
