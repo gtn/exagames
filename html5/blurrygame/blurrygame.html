@@ -23,13 +23,13 @@
 		</div>
 		<script>
 			var score = 0;
+			var round = 0;
 			var timeScore = 0;
 			var questions = [];
 			var answers = "";
 			var questionCnt = 0;
 			var gamedataurl = flashvars.gamedataurl;
 
-            console.log(gamedataurl);
 			var ajaxCall = {
 					url: gamedataurl,
 					success: function(data, status, xhr) {
@@ -122,7 +122,6 @@
 				});
 
 			});
-				var round = 0;
 				var blurInterval;
 				var lifeCount = 3;
 				var curPoints = 100;
@@ -160,7 +159,6 @@
 					}
 					return;
 				}
-
 				questionCnt++;
 				removeStartButton();
 				resetTimepoints();

@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2022090200;
+$plugin->version = 2023090700;
 $plugin->requires = 2010112400;
 $plugin->cron      = 0;
 $plugin->component = 'mod_exagames';

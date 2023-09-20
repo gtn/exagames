@@ -51,15 +51,15 @@ function exagames_add_instance($game)
  **/
 function exagames_update_instance($game)
 {
-	global $DB;
-	
+	global $DB, $PAGE;
+	$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
+	$game->id = $exagame->id;
+
 	if($game->gametype == "gamelabs" && !$game->url)
 		return false;
 	
     $game->timemodified = time();
-    $game->id = $game->instance;
 	if (!$game->introformat) $game->introformat = '';
-
     if (!$DB->update_record("exagames", $game)) {
         return false;  // some error occurred
     }
@@ -90,7 +90,7 @@ function exagames_delete_instance($id) {
 
     # Delete any dependent records here #
 
-    if (! $DB->delete_records("exagames", array("id"=>$game->id))) {
+    if (! $DB->delete_records("exagames", array("id"=>$id))) {
         $result = false;
     }
 
@@ -262,24 +262,10 @@ function exagames_print_tabs($game, $currenttab)
 
 	$context = context_module::instance($cm->id);
 	if (has_capability('moodle/course:manageactivities', $context)) {
-		$url = $CFG->wwwroot.'/course/mod.php?update='.$cm->id.'&return=1&sesskey='.$USER->sesskey;
-		$row[] = new tabobject('edit', $url, get_string('edit'));
+		$url = $CFG->wwwroot.'/course/mod.php?update='.$cm->id.'&return=1&sesskey='.sesskey();
+		$row[] = new tabobject('edit', $url, get_string('edit'));		
 
-		if ($game->quizid && $game->gametype != 'gamelabs') {
-			$quizInstanceId = $DB->get_field_sql("SELECT cm.id
-						   FROM {$CFG->prefix}course_modules cm,
-								{$CFG->prefix}modules md
-						   WHERE md.name = 'quiz' AND
-								 cm.instance = '".$game->quizid."' AND
-								 md.id = cm.module");
-
-			if ($quizInstanceId) {
-				$row[] = new tabobject('configure_quiz', $CFG->wwwroot.'/mod/quiz/edit.php?cmid='.$quizInstanceId, get_string('configure_quiz', 'exagames'));
-			}
-		}
-		
-
-		if ($game->gametype != 'tiles' && $game->gametype != 'gamelabs') {
+		if ($game->gametype != 'tiles' && $game->gametype != 'braingame') {
 			$row[] = new tabobject('edit', $CFG->wwwroot.'/grade/report/index.php?id='.$COURSE->id, get_string('grades'));
 		}
 	}
@@ -296,15 +282,16 @@ function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
 	$quizid = (int)$quizid;
 
-    $questions = $DB->get_records_sql("SELECT qu.* FROM mdl_question_bank_entries as en
-    inner join mdl_question_versions as qv on en.id = qv.questionbankentryid
-    inner join mdl_question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$quizid]);
+    $questions = $DB->get_records_sql("SELECT qu.* FROM {$CFG->prefix}question_bank_entries as en
+    inner join {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
+    inner join {$CFG->prefix}question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ?", [$quizid]);
 
     if ($questions == null) {
 		print_error('quiznotfound');
 	}
 
 	// read questions accoridng to the sorting
+	$quiz = new stdClass();
     $quiz->id = $quizid;
 	$quiz->questions = array();
 	$quiz->sumgrades = 0;
@@ -313,11 +300,12 @@ function exagames_load_quiz($quizid) {
 
 	$quizobj->preload_questions();
     $quizobj->load_questions();*/
-    foreach ($questions as $i => $question)
+    foreach ($questions as $question)
 	{
 		$question = question_bank::make_question($question);
-        $question->answers = $DB->get_records_sql("SELECT qaw.id, qaw.answer, qaw.fraction FROM mdl_question as qu inner join mdl_question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
+        $answers = $DB->get_records_sql("SELECT qaw.* FROM {$CFG->prefix}question as qu inner join {$CFG->prefix}question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
 		// only load multichoice and truefalse
+		$question->answers = $answers;
 		if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question))
 			continue;
 			
@@ -335,7 +323,6 @@ function exagames_load_quiz($quizid) {
             $question->answers = swapshuffle_assoc($question->answers);
         }
 	}
-
 	//echo "<pre>";
 	//var_dump($quiz);
 	return $quiz;
@@ -358,7 +345,7 @@ function exagames_get_game_instance($instanceid)
 		$game->width = 940;
 		$game->height = 535;
 	} else {
-		$game->hasHighscore = false;
+		$game->hasHighscore = true;
 		$game->width = 800;
 		$game->height = 600;
 	}
@@ -454,8 +441,6 @@ function exagames_quiz_attempt($game, $grade)
 	global $DB, $COURSE, $USER;
 	
 	$quiz = exagames_load_quiz($game->quizid);
-
-    echo"<script>alert('$game->quizid')</script>";
 
 	$attemptnum = 1 + $DB->get_field_sql('SELECT MAX(attempt) FROM {quiz_attempts} WHERE quiz=? AND userid=?', array($game->quizid, $grade->userid));
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');

@@ -35,8 +35,6 @@ class mod_exagames_mod_form extends moodleform_mod
 
         global $COURSE, $CFG, $DB, $OUTPUT, $PAGE, $USER;
         $mform =& $this->_form;
-
-
 //-------------------------------------------------------------------------------
         $stringman = get_string_manager();
         $strings = $stringman->load_component_strings('mod_exagames', $CFG->lang);
@@ -64,22 +62,21 @@ class mod_exagames_mod_form extends moodleform_mod
         /// Quiz Dropdown
         $questions = array();
         $questionBankNames = array();
-        $firstBankId = null;
-        $urlQuizId = optional_param('quizId', 0, PARAM_INT); // Course Module ID, or
-        if ($urlQuizId != null) $firstBankId = $urlQuizId;
-        if($recs = $DB->get_records_sql("SELECT ca.* FROM mdl_question_bank_entries as en inner join mdl_question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
-            foreach ($recs as $rec) {
+        $qtest = array();
+        $exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
+        $exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
+        if($recs = $DB->get_records_sql("SELECT ca.* FROM {$CFG->prefix}question_bank_entries as en inner join {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
+            foreach ($recs as $key=>$rec) {
                 if ($firstBankId == null) {
                     $firstBankId = $rec->id;
-                }
-                $qtest = $DB->get_records_sql("SELECT qu.* FROM mdl_question_bank_entries as en
-    inner join mdl_question_versions as qv on en.id = qv.questionbankentryid
-    inner join mdl_question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ? group by en.id;", [$urlQuizId]);
+                } 
+                $qtest[$key] = $DB->get_records_sql("SELECT qu.* FROM {$CFG->prefix}question_bank_entries as ba
+                inner join {$CFG->prefix}question_versions as qv on ba.id = qv.questionbankentryid
+                inner join {$CFG->prefix}question as qu on qu.id = qv.questionid WHERE ba.questioncategoryid = ?", [intval($rec->id)]);
                 $questions[$rec->id] = $rec->name;
                 $qDetails = new stdClass();
                 $qNameArr = array();
-                if ($rec->id == $urlQuizId) {
-                    foreach ($qtest as $q) {
+                    foreach ($qtest[$key] as $q) {
                         $curDetails = $DB->get_record('exagames_question', array('id' => $q->id), $fields = 'difficulty, display_order, content_url', $strictness = IGNORE_MISSING);
                         if ($curDetails) {
                             $qDetails->difficulty = $curDetails->difficulty;
@@ -102,7 +99,7 @@ class mod_exagames_mod_form extends moodleform_mod
                     $qObject->quizName = $rec->name;
 
                     $questionBankNames[$rec->id] = $qObject;
-                }
+                
             }
         }
 
@@ -176,8 +173,7 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->addElement('select', 'gametype', get_string('gametype', 'exagames'), $games);
         $mform->addHelpButton('gametype', 'gametype', 'exagames');
 
-        //$quizLen = count($quizzes_questionNames[$firstQuizId]->questionDetails);
-
+        $quizLen = count($questionBankNames[$exagame->quizid]->questionDetails);
         foreach ($questionBankNames as $quizKey => $questions) {
             foreach ($questions->questionDetails as $questKey => $qDetails) {
                 $content_url = $qDetails->content_url;
@@ -202,6 +198,13 @@ class mod_exagames_mod_form extends moodleform_mod
                 $urlParams .= "no_difficulty_selected_text=" . get_string('tiles_noDifficultySelected', 'exagames') . "&";
                 $urlParams .= "configuration_saved=" . get_string('configurationSaved', 'exagames') . "&";
                 $urlParams .= "no_configuration_saved=" . get_string('noConfigurationSaved', 'exagames') . "&";
+                $urlParams .= "randomize_button=" . get_string('randomizeButton', 'exagames') . "&";
+                $urlParams .= "simulate_button=" . get_string('simulateButton', 'exagames') . "&";
+                $urlParams .= "reset_button=" . get_string('resetButton', 'exagames') . "&";
+                $urlParams .= "save_button=" . get_string('saveButton', 'exagames') . "&";
+                $urlParams .= "diff_easy=" . get_string('easyDifficulty', 'exagames') . "&";
+                $urlParams .= "diff_int=" . get_string('interDifficulty', 'exagames') . "&";
+                $urlParams .= "diff_hard=" . get_string('hardDifficulty', 'exagames') . "&";
 
                 $tilesEditor[] = $mform->createElement("html", '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px">
@@ -227,74 +230,71 @@ class mod_exagames_mod_form extends moodleform_mod
         <script src="https://code.jquery.com/jquery-3.6.0.js"
                 integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
         <script>
-
-            $(function () {
-                $(document).ready(function () {
-                    $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#saveButton').html("<?php echo get_string('tiles_saveButton', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#randomizeButton').html("<?php echo get_string('tiles_randomizeButton', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#simulateButton').html("<?php echo get_string('tiles_simulateButton', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#saveText').html("<?php echo get_string('tiles_saveText', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#resetButton').html("<?php echo get_string('tiles_resetButton', 'mod_exagames'); ?>");
-                    $("iframe").contents().find("#difficultyForm input[value='easy']")
-                        .next()
-                        .html("<?php echo get_string('tiles_difficultyLabel_easy', 'mod_exagames'); ?>");
-                    $("iframe").contents().find("#difficultyForm input[value='intermediate']")
-                        .next()
-                        .html("<?php echo get_string('tiles_difficultyLabel_medium', 'mod_exagames'); ?>");
-                    $("iframe").contents().find("#difficultyForm input[value='hard']")
-                        .next()
-                        .html("<?php echo get_string('tiles_difficultyLabel_hard', 'mod_exagames'); ?>");
-                    $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'mod_exagames'); ?>");
-                });
-
-
-            });
-
             let quizzes = <?php echo json_encode($questionBankNames); ?>;
-
             let url_string = window.location.href;
             let url = new URL(url_string);
-            var cur_quizid = url.searchParams.get("quizId");
+            var cur_quizid = url.searchParams.get("quizid");
             var loc = <?php echo json_encode($url); ?>;
 
             $(document).ready(function () {
-                console.log("started");
-                if(url.searchParams.get("quizId")){
-                    $('#id_quizid').val(url.searchParams.get("quizId"));
-                }
                 handleGameTypeParam();
                 handleQuizSelectParam();
 
+                $('#id_quizid').prop('disabled', false);
+                $('#id_gametype').prop('disabled', false);
+                
                 $('#id_gametype').on('change', function () {
                     handleGameTypeParam();
                 });
 
                 $('#id_quizid').on('change', function () {
                     handleQuizSelectParam();
-                    url.searchParams.set("quizId", $('#id_quizid').val());
-                    window.location.replace(url);
                 });
 
+                $('.mainContainer').on('load', function(){
+                    alert("test");
+                    alert("<?php echo get_string('tiles_difficultyLabel_hard', 'exagames'); ?>");
+                    $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'exagames'); ?>");
+                    $("iframe").contents().find('#saveButton').html("<?php echo get_string('tiles_saveButton', 'exagames'); ?>");
+                    $("iframe").contents().find('#randomizeButton').html("<?php echo get_string('tiles_randomizeButton', 'exagames'); ?>");
+                    $("iframe").contents().find('#simulateButton').html("<?php echo get_string('tiles_simulateButton', 'exagames'); ?>");
+                    $("iframe").contents().find('#saveText').html("<?php echo get_string('tiles_saveText', 'exagames'); ?>");
+                    $("iframe").contents().find('#resetButton').html("<?php echo get_string('tiles_resetButton', 'exagames'); ?>");
+                    $("iframe").contents().find("#difficultyForm input[value='easy']")
+                        .next()
+                        .html("<?php echo get_string('tiles_difficultyLabel_easy', 'exagames'); ?>");
+                    $("iframe").contents().find("#difficultyForm input[value='intermediate']")
+                        .next()
+                        .html("<?php echo get_string('tiles_difficultyLabel_medium', 'exagames'); ?>");
+                    $("iframe").contents().find("#difficultyForm input[value='hard']")
+                        .next()
+                        .html("<?php echo get_string('tiles_difficultyLabel_hard', 'exagames'); ?>");
+                    $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'exagames'); ?>");
+                });
             });
 
             function handleGameTypeParam() {
-                switch ($('#id_gametype').val()) {
+                switch($('#id_gametype').val()) {
                     case 'tiles':
+                        $('.initial-hide').show();
                         handleQuizSelectParam();
                         break;
                     case 'braingame':
-                        $("div[id*=tileEditor]").parent().parent().css('display', 'none');
+                        $("div[id*=tileEditor]").parent().parent().parent().parent().css('display', 'none');
                         break;
                 }
             }
 
             function handleQuizSelectParam() {
-                $("div[id*=tileEditor]").parent().parent().css('display', 'none');
-                if ($('#id_gametype').val() == 'tiles') {
-                    console.log($("div[id*=tileEditor-" + $('#id_quizid').val() + "]"));
-                    $("div[id*=tileEditor-" + $('#id_quizid').val() + "]").parent().parent().css('display', '');
-                    setTimeout(function () {
+                $("div[id*=tileEditor]").parent().parent().parent().parent().css('display', 'none');
+                if($('#id_gametype').val() == 'tiles') {
+                    $("div[id*=tileEditor-" +	$('#id_quizid').val() + "]").parent().parent().parent().parent().css('display', 'block');
+                    $("div[id*=tileEditor-" +	$('#id_quizid').val() + "]").css('display', 'block');
+
+                    $(".filemanager").show();
+                    $(".form-filetypes-descriptions").show();
+
+                        setTimeout(function() {
                         $('#id_quizid').trigger('change');
                     }, 500);
                 }
@@ -302,7 +302,6 @@ class mod_exagames_mod_form extends moodleform_mod
 
             function getLoadSwitchRef() {
                 return $('#id_quizid');
-
             }
 
             function a(frameId) {

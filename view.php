@@ -17,6 +17,7 @@ $out = array();
  global $COURSE, $CFG, $DB, $USER;
 $img_files = array();
 $responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW);
+$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
 		print_error("Course Module ID was incorrect");
@@ -34,7 +35,7 @@ if ($id) {
 	}
 
 } else {
-	if (! $game = $DB->get_record("exagames", array("id"=>$a))) {
+	if (! $game = $DB->get_record("exagames", array("id"=>$exagame->id))) {
 		print_error("Course module is incorrect");
 	}
 	if (! $course = $DB->get_record("course", array("id"=>$game->course))) {
@@ -133,13 +134,13 @@ if ($action == 'data') {
 
 		exit;
 
-	} elseif (!isguestuser() && $game->hasHighscore && (($score = optional_param('score', -9999, PARAM_INT)) != -9999)) {
+	} elseif (!isguestuser() && $game->hasHighscore && (($score = optional_param('score', -9999, PARAM_FLOAT)) != -9999)) {
 
 		$scoreDb = new stdClass();
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		$scoreDb->score = $score;
+		$scoreDb->score = intval($score*100);
 		$scoreDb->time = time();
 
 		$DB->insert_record('exagames_scores', $scoreDb);
@@ -148,74 +149,76 @@ if ($action == 'data') {
 
 		exit;
 	} else {
-		// output gamedata as xml for flash
+// output gamedata as xml for flash
 
-		require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
+require dirname(__FILE__).'/lib/Pro/SimpleXMLElement.php';
 
-		$xmlQuiz = Pro_SimpleXMLElement::create('quiz');
-		$xmlQuiz->setAttribute('sumgrades', $quiz->sumgrades);
+$xmlQuiz = Pro_SimpleXMLElement::create('quiz');
+$xmlQuiz->setAttribute('sumgrades', $quiz->sumgrades);
 
-		$xmlUser = $xmlQuiz->addChild('user')->setAttribute('id', $USER->id);
-		$xmlUser->addChild('name', fullname($USER));
-		$xmlQuiz->intro = exagames_html_to_text($quiz->intro);
+$xmlUser = $xmlQuiz->addChild('user')->setAttribute('id', $USER->id);
+$xmlUser->addChild('name', fullname($USER));
+$xmlQuiz->intro = exagames_html_to_text($quiz->intro);
 
-		if ($game->gametype == 'tiles') {
-			$xmlQuiz->rules = null;
-			$xmlQuiz->rules->addCData(get_string("game_tiles_rules", "exagames"));
+if ($game->gametype == 'tiles') {
+	$xmlQuiz->rules = null;
+	$xmlQuiz->rules->addCData(get_string("game_tiles_rules", "exagames"));
+}
+
+$xmlQuestions = $xmlQuiz->addChild('questions');
+
+foreach ($quiz->questions as $question) {
+
+	$xmlQuestion = $xmlQuestions->addChild('question');
+	$xmlQuestion->setAttributes(array(
+		'id' => $question->id,
+		'type' => $question->get_type_name(),
+		'grade' => $question->maxmark
+	));
+	// $xmlQuestion->name = $question->name;
+	$xmlQuestion->text = exagames_html_to_text($question->questiontext);
+
+	if ($game->gametype == 'tiles') {
+		$xmlQuestion->config->tile_size = $question->tile_size;
+		$xmlQuestion->config->difficulty = $question->difficulty;
+		$xmlQuestion->config->content_url = $question->content_url;
+		$xmlQuestion->config->display_order = $question->display_order;
+	}
+
+
+	$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
+	if ($question->get_type_name() == 'multichoice') {
+
+		$xmlQuestion->setAttributes(array(
+			'single' => (int) ($question instanceof qtype_multichoice_single_question)
+		));
+
+		$answers = $xmlQuestion->addChild('answers');
+		foreach ($question->answers as $answer) {
+			$xmlAnswer = $answers->addChild('answer')->setAttributes(array('id'=>$answer->id, 'fraction'=>$answer->fraction));
+			$xmlAnswer->text = exagames_html_to_text($answer->answer);
+			$xmlAnswer->feedback = exagames_html_to_text($answer->feedback);
 		}
 
-		$xmlQuestions = $xmlQuiz->addChild('questions');
+		$xmlQuestion->feedbacks->correct = exagames_html_to_text($question->correctfeedback);
+		$xmlQuestion->feedbacks->partiallycorrect = exagames_html_to_text($question->partiallycorrectfeedback);
+		$xmlQuestion->feedbacks->incorrect = exagames_html_to_text($question->incorrectfeedback);
 
-		foreach ($quiz->questions as $question) {
+	} elseif ($question->get_type_name() == 'truefalse') {
 
-			$xmlQuestion = $xmlQuestions->addChild('question');
-			$xmlQuestion->setAttributes(array(
-				'id' => $question->id,
-				'type' => $question->get_type_name(),
-				'grade' => $question->maxmark
-			));
-			// $xmlQuestion->name = $question->name;
-			$xmlQuestion->text = exagames_html_to_text($question->questiontext);
+		$xmlQuestion->setAttributes(array(
+			'correctanswer' => (int) $question->rightanswer
+		));
 
-			if ($game->gametype == 'tiles') {
-				$xmlQuestion->config->tile_size = $question->tile_size;
-				$xmlQuestion->config->difficulty = $question->difficulty;
-				$xmlQuestion->config->content_url = $question->content_url;
-				$xmlQuestion->config->display_order = $question->display_order;
-			}
+		$xmlQuestion->feedbacks->truefeedback = exagames_html_to_text($question->truefeedback);
+		$xmlQuestion->feedbacks->falsefeedback = exagames_html_to_text($question->falsefeedback);
+	} else {
+		print_error("Questiontype is not supported! Please use truefalse, or multichoice!");
+	}
+}
+header('Content-Type: text/xml; charset=utf-8');
 
-
-			$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
-			if ($question->get_type_name() == 'multichoice') {
-
-				$xmlQuestion->setAttributes(array(
-					'single' => (int) ($question instanceof qtype_multichoice_single_question)
-				));
-
-				$answers = $xmlQuestion->addChild('answers');
-				foreach ($question->answers as $answer) {
-					$xmlAnswer = $answers->addChild('answer')->setAttributes(array('id'=>$answer->id, 'fraction'=>$answer->fraction));
-					$xmlAnswer->text = exagames_html_to_text($answer->answer);
-					$xmlAnswer->feedback = exagames_html_to_text($answer->feedback);
-				}
-
-				$xmlQuestion->feedbacks->correct = exagames_html_to_text($question->correctfeedback);
-				$xmlQuestion->feedbacks->partiallycorrect = exagames_html_to_text($question->partiallycorrectfeedback);
-				$xmlQuestion->feedbacks->incorrect = exagames_html_to_text($question->incorrectfeedback);
-
-			} elseif ($question->get_type_name() == 'truefalse') {
-
-				$xmlQuestion->setAttributes(array(
-					'correctanswer' => (int) $question->rightanswer
-				));
-
-				$xmlQuestion->feedbacks->truefeedback = exagames_html_to_text($question->truefeedback);
-				$xmlQuestion->feedbacks->falsefeedback = exagames_html_to_text($question->falsefeedback);
-			}
-		}
-		header('Content-Type: text/xml; charset=utf-8');
-
-		echo $xmlQuiz->asXML();
+echo $xmlQuiz->asXML();
 
 		exit;
 	}
@@ -248,8 +251,10 @@ $navlinks[] = array('name' => $strexagamess, 'link' => "index.php?id=$course->id
 $navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' => 'activityinstance');
 
 //$navigation = build_navigation($navlinks);
-
-$PAGE->set_url($_SERVER['REQUEST_URI']);
+$partUrl = explode("/", $_SERVER['PHP_SELF'], 2);
+$pos = strpos($partUrl[1], "/");
+$url = new moodle_url(substr($partUrl[1], $pos), array('id'=>$id));
+$PAGE->set_url($url);
 $PAGE->requires->js('/mod/exagames/js/swfobject.js', true);
 
 $stringman = get_string_manager();
@@ -439,9 +444,11 @@ exagames_print_tabs($game, 'show');
 /// Print the main part of the page
 
 if($game->gametype != 'gamelabs') {
-	$url = new moodle_url($_SERVER['PHP_SELF'], array('id'=>$id));
+	$partUrl = explode("/", $_SERVER['PHP_SELF'], 2);
+	$pos = strpos($partUrl[1], "/");
+	$url = new moodle_url(substr($partUrl[1], $pos), array('id'=>$id));
 $flashvars = array(
-	'gameurl' => $url->out(),
+	'gameurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$id,
 	'gamedataurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=data&rand='.time(),
 	'courseurl' => $CFG->wwwroot.'/course/view.php?id='.$course->id,
 	'translationsurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=translations'
@@ -458,7 +465,6 @@ $gametype = $game->gametype;
 	var flashvars = <?php echo json_encode($flashvars) ?>;
 	var gameType = <?php echo json_encode($gametype) ?>;
 	//var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
-	console.log(gameType);
 	var params = {};
 	var attributes = {};
 	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);

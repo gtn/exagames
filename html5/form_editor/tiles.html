@@ -67,12 +67,18 @@
 		};
 		var fmImagePath;
 		$(document).ready(function() {
+			$("#randomizeButton").html(url.searchParams.get("randomize_button"));
+			$("#simulateButton").html(url.searchParams.get("simulate_button"));
+			$("#resetButton").html(url.searchParams.get("reset_button"));
+			$("#saveButton").html(url.searchParams.get("save_button"));
+			$("input").attr('value', 'easy').parent().find("span").get(0).textContent = url.searchParams.get("diff_easy");
+			$("input").attr('value', 'easy').parent().find("span").get(1).textContent = url.searchParams.get("diff_int");
+			$("input").attr('value', 'easy').parent().find("span").get(2).textContent = url.searchParams.get("diff_hard");
 
 			if(flashvars.content_url != null && flashvars.display_order != null && flashvars.difficulty != null) {
 				fmImagePath = flashvars.content_url;
 				clickedTiles = flashvars.display_order.split(",");
 				wasConfigured = true;
-				console.log(flashvars.difficulty);
 			 	let inputElems = $('input');
 
 			 for(let i = 0; i < inputElems.length; i++) {

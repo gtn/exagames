@@ -91,3 +91,12 @@ $string['tiles_editConfig'] = 'In Bearbeitung (nicht gespeichert)';
 $string['tiles_noSquareSelected'] = 'Es wurde noch keine Fläche markiert!';
 $string['tiles_noDifficultySelected'] = 'Es wurde noch kein Schwierigkeitsgrad ausgewählt!';
 $string['configurationSaved'] = 'Die Konfiguration wurde gespeichert!';
+$string['noConfigurationSaved'] = 'Die Konfiguration wurde nicht gespeichert!';
+$string['simulateButton'] = 'Simulieren';
+$string['randomizeButton'] = 'Zufall';
+$string['resetButton'] = 'Zurücksetzen';
+$string['saveButton'] = 'Speichern';
+$string['easyDifficulty'] = 'Leicht';
+$string['interDifficulty'] = 'Mittel';
+$string['hardDifficulty'] = 'Schwer';
+
