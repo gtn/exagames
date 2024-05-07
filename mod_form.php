@@ -136,7 +136,11 @@ class mod_exagames_mod_form extends moodleform_mod {
 
 
 
-        $quizLen = count($quizzes_questionNames[$firstQuizId]->questionDetails);
+	if ($quizzes_questionNames[$firstQuizId]->questionDetails !== null) {
+		$quizLen = count($quizzes_questionNames[$firstQuizId]->questionDetails);
+	} else {
+		$quizLen = 0;
+	}
 
         $mform->addElement('html', '<div class="initial-hide">');
 
@@ -156,7 +160,7 @@ class mod_exagames_mod_form extends moodleform_mod {
                 $urlParams .= isset($question_id) && $question_id != null ? "question_id=$question_id" : "";
 
 
-                $tilesEditor[] = $mform->createElement(html, '
+                $tilesEditor[] = $mform->createElement('html', '
 											<div id="tileEditor-' . $quizKey . '-quest-' . $questKey . '" style="width: 940px; height:600px;display:none;">
 												<iframe class="editor_frames" id="editorframe-' . $quizKey . '-quest-' . $questKey . '" frameborder="0" style="height:600px;width:940px" src="' . $CFG->wwwroot . '/mod/exagames/html5/form_editor/tiles.html' . $urlParams . '"></iframe></br>
 											</div>');
