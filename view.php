@@ -224,7 +224,8 @@ echo $xmlQuiz->asXML();
 	}
 }
 
-$context = context_block::instance(CONTEXT_COURSE, $game->course);
+
+$context = context_module::instance($cm->id);
 /*if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
 	$questionConfig = new stdClass();
 	$questionConfig->id = $questionId;
