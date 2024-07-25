@@ -63,8 +63,8 @@ class mod_exagames_mod_form extends moodleform_mod
         $questions = array();
         $questionBankNames = array();
         $qtest = array();
-        $exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
-        $exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
+        //$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
+        //$exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
         if($recs = $DB->get_records_sql("SELECT ca.* FROM {$CFG->prefix}question_bank_entries as en inner join {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
             foreach ($recs as $key=>$rec) {
                 if ($firstBankId == null) {
@@ -173,7 +173,7 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->addElement('select', 'gametype', get_string('gametype', 'exagames'), $games);
         $mform->addHelpButton('gametype', 'gametype', 'exagames');
 
-        $quizLen = count($questionBankNames[$exagame->quizid]->questionDetails);
+        //$quizLen = count($questionBankNames[$exagame->quizid]->questionDetails);
         foreach ($questionBankNames as $quizKey => $questions) {
             foreach ($questions->questionDetails as $questKey => $qDetails) {
                 $content_url = $qDetails->content_url;
