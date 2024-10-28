@@ -468,12 +468,10 @@ class mod_exagames_mod_form extends moodleform_mod
                         'timemodified' => time(),
                     );
 
-                    // Check if the file already exists
-                    $existing_file = $fs->get_file($contextid, $newComponent, $newFilearea, $questionId, '/', $filename);
-                    if ($existing_file) {
-                        $existing_file->delete();
-                    }
-                    // new file in all cases
+                    // Remove files: only single file for every question
+                    $fs->delete_area_files($contextid, $newComponent, $newFilearea, $questionId);
+
+                    // New file
                     $new_file = $fs->create_file_from_string($file_record, $draftContent);
 
                     $content_partUrl = implode('/', [$contextid, $newComponent, $newFilearea, $questionId, $filename]);
