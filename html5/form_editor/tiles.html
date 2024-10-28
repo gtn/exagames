@@ -21,9 +21,9 @@
 				<div class="col-3">
 					<form id="difficultyForm" action="">
 							<legend id="difficultyLabel"></legend>
-							<input type="radio" name="difficulty" value="easy"> <span>Langsam</span> </br>
-							<input type="radio" name="difficulty" value="intermediate"> <span>Mittel</span></br>
-							<input type="radio" name="difficulty" value="hard"> <span>Schnell</span> </br>
+							<input type="radio" name="difficulty" value="easy" id="difficulty_radio_easy" /> <label for="difficulty_radio_easy"><span>Langsam</span> </label></br>
+							<input type="radio" name="difficulty" value="intermediate" id="difficulty_radio_intermediate"/> <label for="difficulty_radio_intermediate"><span>Mittel</span> </label></br>
+							<input type="radio" name="difficulty" value="hard" id="difficulty_radio_hard" /> <label for="difficulty_radio_hard"><span>Schnell</span> </label></br>
 					</form>
 				</div>
 			</div>
@@ -71,9 +71,9 @@
 			$("#simulateButton").html(url.searchParams.get("simulate_button"));
 			$("#resetButton").html(url.searchParams.get("reset_button"));
 			$("#saveButton").html(url.searchParams.get("save_button"));
-			$("input").attr('value', 'easy').parent().find("span").get(0).textContent = url.searchParams.get("diff_easy");
-			$("input").attr('value', 'easy').parent().find("span").get(1).textContent = url.searchParams.get("diff_int");
-			$("input").attr('value', 'easy').parent().find("span").get(2).textContent = url.searchParams.get("diff_hard");
+			$("label[for='difficulty_radio_easy']").find("span").text(url.searchParams.get("diff_easy"));
+			$("label[for='difficulty_radio_intermediate']").find("span").text(url.searchParams.get("diff_int"));
+			$("label[for='difficulty_radio_hard']").find("span").text(url.searchParams.get("diff_hard"));
 
 			if(flashvars.content_url != null && flashvars.display_order != null && flashvars.difficulty != null) {
 				fmImagePath = flashvars.content_url;
@@ -81,63 +81,72 @@
 				wasConfigured = true;
 			 	let inputElems = $('input');
 
-			 for(let i = 0; i < inputElems.length; i++) {
-				if($(inputElems[i])[0].attributes[2].nodeValue == flashvars.difficulty) {
-						$(inputElems[i]).prop('checked', true);
-				};
-			 }
+				 for(let i = 0; i < inputElems.length; i++) {
+					if($(inputElems[i])[0].attributes[2].nodeValue == flashvars.difficulty) {
+							$(inputElems[i]).prop('checked', true);
+					};
+				 }
 			 	showConfiguredStatus(1);
-				loadFile();
+				loadFile(fmImagePath);
 			} else {
 				showConfiguredStatus(0);
 			}
 
 			$(fp_ref).bind("DOMSubtreeModified", function() {
-				fmImagePath = window.parent.getFMImage(window.frameElement.id);
-				showConfiguredStatus(2);
-				loadFile();
+				// fmImagePath = window.parent.getFMImage(window.frameElement.id);
+				window.parent.getFMImage(window.frameElement.id).then(fmImagePath => {
+					// console.log('Image Path found:', fmImagePath);
+					showConfiguredStatus(2);
+					// remove 'preview' parameter
+					let urlObj = new URL(fmImagePath);
+					let params = new URLSearchParams(urlObj.search);
+					params.delete('preview');
+					urlObj.search = params.toString();
+					fmImagePath = urlObj.toString();
+					loadFile(fmImagePath);
+				});
 			});
 
 
 		});
-			function loadFile() {
+			function loadFile(fileLink) {
 
-						$('#squareContainer').empty();
-						var fileLink = fmImagePath;
-						$('#quizImage').attr('src', fileLink);
-							var img = document.getElementById('quizImage');
-							img.onload = function() {
-								getImageSize($('#quizImage'), function(imgWidth, imgHeight) {
-									$('#squareContainer').css('width', imgWidth+ 'px');
-									$('#squareContainer').css('height', imgHeight + 'px');
-									//$('#imageContainer').css('width', imgWidth+ 'px');
-									var squares = [];
-									for(var i = 0; i < SQUARE_MAX; i++) {
-										var square = $('<div>', {
-											'class': 'blurry-square',
-											'id': 'square-nr-' + i,
-											height: imgHeight/10,
-											width: imgWidth/10
-										});
-										square.appendTo('#squareContainer');
-										squares.push(square);
-									}
-									$('.blurry-square').on('click', function(e) {
-										if($(e.target).css('opacity') == 0.3) {
-											var clickedId = e.currentTarget.attributes[1].nodeValue;
-											clickedTiles.push(clickedId.substring(10, clickedId.length));
-											$('#' + clickedId).css('opacity', '0.95');
-										}
-									});
-									//on existing image, load square config from db
-										if (wasConfigured) {
-											wasConfigured = false;
-											cb_setSquaresOpac();
-										}
+				$('#squareContainer').empty();
+
+				$('#quizImage').attr('src', fileLink);
+					var img = document.getElementById('quizImage');
+					img.onload = function() {
+						getImageSize($('#quizImage'), function(imgWidth, imgHeight) {
+							$('#squareContainer').css('width', imgWidth+ 'px');
+							$('#squareContainer').css('height', imgHeight + 'px');
+							//$('#imageContainer').css('width', imgWidth+ 'px');
+							var squares = [];
+							for(var i = 0; i < SQUARE_MAX; i++) {
+								var square = $('<div>', {
+									'class': 'blurry-square',
+									'id': 'square-nr-' + i,
+									height: imgHeight/10,
+									width: imgWidth/10
 								});
+								square.appendTo('#squareContainer');
+								squares.push(square);
+							}
+							$('.blurry-square').on('click', function(e) {
+								if($(e.target).css('opacity') == 0.3) {
+									var clickedId = e.currentTarget.attributes[1].nodeValue;
+									clickedTiles.push(clickedId.substring(10, clickedId.length));
+									$('#' + clickedId).css('opacity', '0.95');
+								}
+							});
+							//on existing image, load square config from db
+								if (wasConfigured) {
+									wasConfigured = false;
+									cb_setSquaresOpac();
+								}
+						});
 
 
-							};
+					};
 
 		}
 
@@ -222,7 +231,9 @@
 			clickedTiles = [];
 		});
 
-		$('#saveButton').on('click', saveConfiguration);
+		$('#saveButton').on('click', function() {
+			saveConfiguration($(this));
+		});
 
 		function cb_setSquaresOpac() {
 			for(let i = 0; i < clickedTiles.length; i++)
@@ -261,18 +272,20 @@
 			}
 		}
 
-		function saveConfiguration() {
+		function saveConfiguration(clickedButton) {
 			let noSquareSelected = url.searchParams.get("tiles_noSquareSelected");
 			let noDifficultySelectedText = url.searchParams.get("no_difficulty_selected_text");
 			let configurationSaved = url.searchParams.get("configuration_saved");
 			let noConfigurationSaved = url.searchParams.get("no_configuration_saved");
+
+			var difficultyForm = clickedButton.closest('body').find('#difficultyForm');
 
 			if(clickedTiles.length < 100) {
 				showStatusText(noSquareSelected);
 			} else if($('input[name=difficulty]:checked', '#difficultyForm').val() == undefined){
 				showStatusText(noDifficultySelectedText);
 			} else {
-				let actRadioVal = $('input[name=difficulty]:checked', '#difficultyForm').val();
+				let actRadioVal = difficultyForm.find('input[name=difficulty]:checked').val();
 				let filepath = $('#quizImage').attr('src');
 				filepath = filepath.replace("draftfile.php", "mod/exagames/lib/file_load.php");
 				let ajaxCall = {

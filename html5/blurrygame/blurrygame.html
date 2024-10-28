@@ -115,7 +115,7 @@
 			$(document).ajaxStop(function() {
 				if(questions.length == 0) {
 					alert("No questions configured yet!");
-					exit();
+					return false;
 				}
 				imageAnimationSetup(function (){
 					$('#contentWrapper').show();

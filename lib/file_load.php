@@ -57,8 +57,11 @@ $component = array_shift($args);
 $filearea  = array_shift($args);
 $draftid   = (int)array_shift($args);
 
-if ($component !== 'user' or $filearea !== 'draft') {
-    send_file_not_found();
+if ($component !== 'mod_exagames' || $filearea !== 'question_content') {
+    // old process with 'draft' files, for backward compatibility
+    if ($component !== 'user' || $filearea !== 'draft') {
+        send_file_not_found();
+    }
 }
 
 $context = context::instance_by_id($contextid);
@@ -75,7 +78,13 @@ if ($USER->id != $userid) {
 $fs = get_file_storage();
 
 $relativepath = implode('/', $args);
-$fullpath = "/$context->id/user/draft/$draftid/$relativepath";
+
+if ($filearea == 'question_content') {
+    $fullpath = "/$context->id/mod_exagames/question_content/$draftid/$relativepath"; // $draftid is 'quesiton_id' really
+} else {
+    $fullpath = "/$context->id/user/draft/$draftid/$relativepath";
+}
+
 
 if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->get_filename() == '.') {
     send_file_not_found();

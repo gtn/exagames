@@ -65,7 +65,7 @@ class mod_exagames_mod_form extends moodleform_mod
         $qtest = array();
         //$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
         //$exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
-        if($recs = $DB->get_records_sql("SELECT ca.* FROM {$CFG->prefix}question_bank_entries as en inner join {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
+        if ($recs = $DB->get_records_sql("SELECT ca.* FROM {$CFG->prefix}question_bank_entries as en inner join {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
             foreach ($recs as $key=>$rec) {
                 if ($firstBankId == null) {
                     $firstBankId = $rec->id;
@@ -308,13 +308,79 @@ class mod_exagames_mod_form extends moodleform_mod
                 return $('#' + frameId).parent().parent().find(".fm-content-wrapper > .fp-content");
             }
 
-
             function getFMImage(frameId) {
+                return new Promise((resolve, reject) => {
+                    let fileElement = $('#' + frameId).parent().parent().find('.fp-file .fp-thumbnail > img');
+                    if (fileElement.length) {
+                        let imagePath = $(fileElement).attr('src');
+                        resolve(imagePath);
+                    } else {
+                        let elapsedTime = 0;
+                        let intervalId;
 
+                        intervalId = setInterval(function() {
+                            fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
+
+                            if (fileElement.length > 0) {
+                                clearInterval(intervalId);
+                                let imagePath = $(fileElement).attr('src');
+                                resolve(imagePath);
+                            }
+
+                            elapsedTime += 50;
+
+                            if (elapsedTime >= 1000) {
+                                clearInterval(intervalId);
+                                resolve(''); // return an empty string if not found
+                            }
+                        }, 50); // check every 50 ms
+                    }
+                });
+            }
+
+            function getFMImageOld(frameId) {
                 let fileElement = $('#' + frameId).parent().parent().find('.fp-file .fp-thumbnail > img');
-                let imagePath = $($(fileElement)[0]).attr('src');
-                imagePath = trimURLParamsFromMedia(imagePath);
-                return imagePath;
+                if (fileElement.length) {
+                    let imagePath = $($(fileElement)[0]).attr('src');
+                    return imagePath;
+                } else {
+                    // check element no more than 1 second
+                    var elapsedTime = 0;
+                    var intervalId;
+                    var imagePath = '';
+                    intervalId = setInterval(function() {
+                        fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
+
+                        if (fileElement.length > 0) {
+                            // exists!
+                            let imagePath = $(fileElement).attr('src');
+                            return imagePath;
+                        }
+                        elapsedTime += 50;
+
+                        if (elapsedTime >= 1000) { // 1 seconf - limit
+                            clearInterval(intervalId);
+                            console.log('mod_form.php:333');console.log('not found');// !!!!!!!!!! delete it
+                            return '';
+                        }
+                    }, 50); // every 50 ms
+
+
+                    /*console.log('mod_form.php:318');console.log($('#' + frameId).closest('.felement'));// !!!!!!!!!! delete it
+                    console.log('mod_form.php:318');console.log($('#' + frameId).closest('.felement').find('.filemanager'));// !!!!!!!!!! delete it
+                    console.log('mod_form.php:318');console.log(fileElement);// !!!!!!!!!! delete it
+                    fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
+                    var wait = setInterval(function() {
+                        fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
+                    }, 30);
+                    let imagePath = $(fileElement).attr('src');*/
+                }
+                /*if (imagePath) {
+                    imagePath = trimURLParamsFromMedia(imagePath);
+                } else {
+                    console.log('mod_form.php:323');console.log(frameId);// !!!!!!!!!! delete it
+                }*/
+
             }
 
             function trimURLParamsFromMedia(str) {
@@ -369,6 +435,56 @@ class mod_exagames_mod_form extends moodleform_mod
         <?php
 
         if ((optional_param('func', '', PARAM_TEXT) == 'configure_question') && ($questionId = optional_param('questionid', '', PARAM_INT)) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
+            // $content_url contains an url into DRAFT file, so we need to save it directly:
+            if ($content_url && strpos($content_url, '/user/draft/') !== false ) { // only for DRAFT urls
+                $parsed_url = parse_url($content_url);
+                $path = $parsed_url['path'];
+                $dynamic_part = substr($path, strpos($path, "exagames/lib/file_load.php/") + strlen("exagames/lib/file_load.php/"));
+                $parts = explode('/', $dynamic_part);
+                $contextid = $parts[0];
+                $context = context::instance_by_id($contextid);
+                $component = $parts[1];
+                $filearea = $parts[2];
+                $draftid = $parts[3];
+                $filename = urldecode($parts[4]);
+                $fullpath = "/$context->id/$component/$filearea/$draftid/$filename";
+                $filehash = sha1($fullpath);
+
+                $fs = get_file_storage();
+                $draftFile = $fs->get_file_by_hash($filehash);
+                if ($draftFile) { // only if all ok with draft file
+                    $draftContent = $draftFile->get_content();
+                    // save to real fixed filearea
+                    $newComponent = 'mod_exagames';
+                    $newFilearea = 'question_content';
+                    $file_record = array(
+                        'contextid' => $contextid,
+                        'component' => $newComponent,
+                        'filearea' => $newFilearea,
+                        'itemid' => $questionId,
+                        'filepath' => '/',
+                        'filename' => $filename,
+                        'timecreated' => time(),
+                        'timemodified' => time(),
+                    );
+
+                    // Check if the file already exists
+                    $existing_file = $fs->get_file($contextid, $newComponent, $newFilearea, $questionId, '/', $filename);
+                    if ($existing_file) {
+                        $existing_file->delete();
+                    }
+                    // new file in all cases
+                    $new_file = $fs->create_file_from_string($file_record, $draftContent);
+
+                    $content_partUrl = implode('/', [$contextid, $newComponent, $newFilearea, $questionId, $filename]);
+                    $mainLength = strpos($content_url, "exagames/lib/file_load.php/") + strlen("exagames/lib/file_load.php/");
+                    $mainUrl = substr($content_url, 0, $mainLength);
+                    $mainUrl .= $content_partUrl;
+
+                    $content_url = $mainUrl;
+                }
+            }
+
             $questionConfig = new stdClass();
             $questionConfig->id = $questionId;
             $questionConfig->content_url = $content_url;
@@ -376,7 +492,7 @@ class mod_exagames_mod_form extends moodleform_mod
             $questionConfig->difficulty = optional_param('difficulty', '', PARAM_TEXT);
             $questionConfig->display_order = optional_param('display_order', '', PARAM_TEXT);
             if (!$DB->record_exists('exagames_question', array('id' => $questionId))) {
-                $DB->Execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");
+                $DB->execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");
             }
 
             $DB->update_record('exagames_question', $questionConfig);
