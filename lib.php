@@ -35,8 +35,9 @@ function exagames_add_instance($game)
     if (!$game->id = $DB->insert_record("exagames", $game)) {
         return false;
     }
-	if($game->gametype != "gamelabs")
-		exagames_after_add_or_update($game);
+	if($game->gametype != "gamelabs") {
+        exagames_after_add_or_update($game);
+    }
 
 	return $game->id;
 }
@@ -55,18 +56,22 @@ function exagames_update_instance($game)
 	$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
 	$game->id = $exagame->id;
 
-	if($game->gametype == "gamelabs" && !$game->url)
-		return false;
+	if ($game->gametype == "gamelabs" && !$game->url) {
+        return false;
+    }
 	
     $game->timemodified = time();
-	if (!$game->introformat) $game->introformat = '';
+	if (!$game->introformat) {
+        $game->introformat = '';
+    }
     if (!$DB->update_record("exagames", $game)) {
         return false;  // some error occurred
     }
 
 	// Do the processing required after an add or an update.
-	if($game->gametype != "gamelabs")
-		exagames_after_add_or_update($game);
+	if ($game->gametype != "gamelabs") {
+        exagames_after_add_or_update($game);
+    }
 
     return true;
 }
@@ -282,9 +287,13 @@ function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
 	$quizid = (int)$quizid;
 
-    $questions = $DB->get_records_sql("SELECT qu.* FROM {$CFG->prefix}question_bank_entries as en
-    inner join {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
-    inner join {$CFG->prefix}question as qu on qv.questionid = qu.id WHERE en.questioncategoryid = ?", [$quizid]);
+    $questions = $DB->get_records_sql("
+        SELECT qu.* 
+        FROM {$CFG->prefix}question_bank_entries as en
+            INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
+            INNER JOIN {$CFG->prefix}question as qu on qv.questionid = qu.id 
+        WHERE en.questioncategoryid = ?
+    ", [$quizid]);
 
     if ($questions == null) {
 		print_error('quiznotfound');
@@ -303,13 +312,18 @@ function exagames_load_quiz($quizid) {
     foreach ($questions as $question)
 	{
 		$question = question_bank::make_question($question);
-        $answers = $DB->get_records_sql("SELECT qaw.* FROM {$CFG->prefix}question as qu inner join {$CFG->prefix}question_answers as qaw on qu.id = qaw.question WHERE qaw.question = ?", [$question->id]);
+        $answers = $DB->get_records_sql("
+            SELECT qaw.* 
+            FROM {$CFG->prefix}question as qu 
+                INNER JOIN {$CFG->prefix}question_answers as qaw on qu.id = qaw.question 
+            WHERE qaw.question = ?
+        ",[$question->id]);
 		// only load multichoice and truefalse
 		$question->answers = $answers;
 		if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question))
 			continue;
 			
-		$question->maxmark = $question->maxmark ? $question->maxmark : $question->defaultmark;
+		$question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
 		$quiz->sumgrades += $question->maxmark;
 		$quiz->questions[$question->id] = $question;
 		
@@ -319,7 +333,7 @@ function exagames_load_quiz($quizid) {
 		$question->content_url = $questionExtraData ? $questionExtraData->content_url : '';
 		$question->display_order = $questionExtraData ? $questionExtraData->display_order : '';
 
-        if (!empty($question->answers) && $question->shuffleanswers && !empty($question->shuffleanswers)) {
+        if (!empty($question->answers) && @$question->shuffleanswers && !empty($question->shuffleanswers)) {
             $question->answers = swapshuffle_assoc($question->answers);
         }
 	}
@@ -445,12 +459,14 @@ function exagames_quiz_attempt($game, $grade)
 	$attemptnum = 1 + $DB->get_field_sql('SELECT MAX(attempt) FROM {quiz_attempts} WHERE quiz=? AND userid=?', array($game->quizid, $grade->userid));
 	// $uniqueid = 1 + $DB->get_field_sql('SELECT MAX(uniqueid) FROM {quiz_attempts}');
 	
-	//preview made from teacher or higher has always attemptnum = 1, so this attemptnum is reserved
-	$context_course = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+	// preview made from teacher or higher has always attemptnum = 1, so this attemptnum is reserved
+	$context_course = context_course::instance_by_id($COURSE->id);
 	$roles = get_user_roles($context_course, $USER->id);
 	
-	foreach($roles as $role){
-		if($role->roleid <= 4 && $attemptnum == 1)	$attemptnum = 2;
+	foreach ($roles as $role) {
+		if ($role->roleid <= 4 && $attemptnum == 1)	{
+            $attemptnum = 2;
+        }
 	}
 
 	// copied from question/engine/datalib.php: public function insert_questions_usage_by_activity(question_usage_by_activity $quba)

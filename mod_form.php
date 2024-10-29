@@ -65,19 +65,27 @@ class mod_exagames_mod_form extends moodleform_mod
         $qtest = array();
         //$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
         //$exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
-        if ($recs = $DB->get_records_sql("SELECT ca.* FROM {$CFG->prefix}question_bank_entries as en inner join {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id group by en.questioncategoryid")) {
+        if ($recs = $DB->get_records_sql("
+                SELECT ca.* 
+                FROM {$CFG->prefix}question_bank_entries as en 
+                    INNER JOIN {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id 
+                GROUP BY en.questioncategoryid")) {
+
             foreach ($recs as $key=>$rec) {
-                if ($firstBankId == null) {
-                    $firstBankId = $rec->id;
-                } 
-                $qtest[$key] = $DB->get_records_sql("SELECT qu.* FROM {$CFG->prefix}question_bank_entries as ba
-                inner join {$CFG->prefix}question_versions as qv on ba.id = qv.questionbankentryid
-                inner join {$CFG->prefix}question as qu on qu.id = qv.questionid WHERE ba.questioncategoryid = ?", [intval($rec->id)]);
+                $qtest[$key] = $DB->get_records_sql("
+                    SELECT qu.* FROM {$CFG->prefix}question_bank_entries as ba
+                        INNER JOIN {$CFG->prefix}question_versions as qv on ba.id = qv.questionbankentryid
+                        INNER JOIN {$CFG->prefix}question as qu on qu.id = qv.questionid 
+                    WHERE ba.questioncategoryid = ?", [intval($rec->id)]);
                 $questions[$rec->id] = $rec->name;
                 $qDetails = new stdClass();
                 $qNameArr = array();
                     foreach ($qtest[$key] as $q) {
-                        $curDetails = $DB->get_record('exagames_question', array('id' => $q->id), $fields = 'difficulty, display_order, content_url', $strictness = IGNORE_MISSING);
+                        $curDetails = $DB->get_record(
+                                'exagames_question',
+                                array('id' => $q->id),
+                                'difficulty, display_order, content_url',
+                                IGNORE_MISSING);
                         if ($curDetails) {
                             $qDetails->difficulty = $curDetails->difficulty;
                             $qDetails->display_order = $curDetails->display_order;
@@ -294,7 +302,7 @@ class mod_exagames_mod_form extends moodleform_mod
                     $(".filemanager").show();
                     $(".form-filetypes-descriptions").show();
 
-                        setTimeout(function() {
+                    setTimeout(function() {
                         $('#id_quizid').trigger('change');
                     }, 500);
                 }
@@ -353,33 +361,20 @@ class mod_exagames_mod_form extends moodleform_mod
 
                         if (fileElement.length > 0) {
                             // exists!
-                            let imagePath = $(fileElement).attr('src');
+                            imagePath = $(fileElement).attr('src');
+                            if (imagePath) {
+                                imagePath = trimURLParamsFromMedia(imagePath);
+                            }
                             return imagePath;
                         }
                         elapsedTime += 50;
 
-                        if (elapsedTime >= 1000) { // 1 seconf - limit
+                        if (elapsedTime >= 1000) { // 1 second - limit
                             clearInterval(intervalId);
-                            console.log('mod_form.php:333');console.log('not found');// !!!!!!!!!! delete it
                             return '';
                         }
                     }, 50); // every 50 ms
-
-
-                    /*console.log('mod_form.php:318');console.log($('#' + frameId).closest('.felement'));// !!!!!!!!!! delete it
-                    console.log('mod_form.php:318');console.log($('#' + frameId).closest('.felement').find('.filemanager'));// !!!!!!!!!! delete it
-                    console.log('mod_form.php:318');console.log(fileElement);// !!!!!!!!!! delete it
-                    fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
-                    var wait = setInterval(function() {
-                        fileElement = $('#' + frameId).closest('.felement').find('.filemanager img.realpreview').first();
-                    }, 30);
-                    let imagePath = $(fileElement).attr('src');*/
                 }
-                /*if (imagePath) {
-                    imagePath = trimURLParamsFromMedia(imagePath);
-                } else {
-                    console.log('mod_form.php:323');console.log(frameId);// !!!!!!!!!! delete it
-                }*/
 
             }
 
@@ -468,10 +463,9 @@ class mod_exagames_mod_form extends moodleform_mod
                         'timemodified' => time(),
                     );
 
-                    // Remove files: only single file for every question
+                    // Remove files: we need only single file for every question
                     $fs->delete_area_files($contextid, $newComponent, $newFilearea, $questionId);
-
-                    // New file
+                    // And new file create
                     $new_file = $fs->create_file_from_string($file_record, $draftContent);
 
                     $content_partUrl = implode('/', [$contextid, $newComponent, $newFilearea, $questionId, $filename]);
@@ -490,10 +484,14 @@ class mod_exagames_mod_form extends moodleform_mod
             $questionConfig->difficulty = optional_param('difficulty', '', PARAM_TEXT);
             $questionConfig->display_order = optional_param('display_order', '', PARAM_TEXT);
             if (!$DB->record_exists('exagames_question', array('id' => $questionId))) {
-                $DB->execute("INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) VALUES ({$questionConfig->id}, '', '', '', '')");
+                $DB->execute("
+                    INSERT INTO {$CFG->prefix}exagames_question (id, tile_size, content_url, difficulty, display_order) 
+                    VALUES ({$questionConfig->id}, '', '', '', '')
+                ");
             }
 
             $DB->update_record('exagames_question', $questionConfig);
+
             echo "ok=1";
             exit;
         }

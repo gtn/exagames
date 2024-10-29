@@ -12,33 +12,43 @@ require_once("inc.php");
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or
 $a  = optional_param('a', 0, PARAM_INT);  // exagames ID
 $action  = optional_param('action', '', PARAM_TEXT);
+
+// Moodle has many Notice|Deprecation errors in the own code, so disable PHP errors if it is an ajax requests for Flash or other...
+// useful id the Moodle is configured in 'developer' mode
+if (in_array($action, ['data', 'translations', ])) {
+    ini_set('display_errors', '0');
+    error_reporting(E_ERROR);
+    define('NO_DEBUG_DISPLAY', true);
+}
+
 // from moodle 2.2 on we have to use optional_param_array, optional_param won't accept arrays
 $out = array();
- global $COURSE, $CFG, $DB, $USER;
+global $COURSE, $CFG, $DB, $USER, $PAGE;
 $img_files = array();
 $responses = function_exists('optional_param_array') ? optional_param_array('responses', array(), PARAM_TEXT) : optional_param('responses', array(), PARAM_RAW);
-$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
+
 if ($id) {
-	if (! $cm = $DB->get_record("course_modules", array("id"=>$id))) {
+	if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
 		print_error("Course Module ID was incorrect");
 	}
 
 
 
-	if (! $course = $DB->get_record("course", array("id"=>$cm->course))) {
+	if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
 		print_error("Course is misconfigured");
 	}
 
 
 	if (! $game = exagames_get_game_instance($cm->instance)) {
-		error("Game not found");
+        print_error("Game not found");
 	}
 
 } else {
-	if (! $game = $DB->get_record("exagames", array("id"=>$exagame->id))) {
+    $exagame = $DB->get_record('exagames', ['id' => @$PAGE->cm->instance]);
+	if (! $game = $DB->get_record("exagames", array("id" => $exagame->id))) {
 		print_error("Course module is incorrect");
 	}
-	if (! $course = $DB->get_record("course", array("id"=>$game->course))) {
+	if (! $course = $DB->get_record("course", array("id" => $game->course))) {
 		print_error("Course is misconfigured");
 	}
 	if (! $cm = get_coursemodule_from_instance("exagames", $game->id, $course->id)) {
@@ -158,7 +168,7 @@ $xmlQuiz->setAttribute('sumgrades', $quiz->sumgrades);
 
 $xmlUser = $xmlQuiz->addChild('user')->setAttribute('id', $USER->id);
 $xmlUser->addChild('name', fullname($USER));
-$xmlQuiz->intro = exagames_html_to_text($quiz->intro);
+$xmlQuiz->intro = exagames_html_to_text(@$quiz->intro);
 
 if ($game->gametype == 'tiles') {
 	$xmlQuiz->rules = null;

@@ -113,10 +113,12 @@
 
 			//on finishing all ajax requests, loaded all available questions
 			$(document).ajaxStop(function() {
-				if(questions.length == 0) {
-					alert("No questions configured yet!");
-					return false;
-				}
+				setTimeout(function() {
+					if (questions.length == 0) {
+						alert("No questions configured yet!");
+						return false;
+					}
+				}, 30);
 				imageAnimationSetup(function (){
 					$('#contentWrapper').show();
 				});
