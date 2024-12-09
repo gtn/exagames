@@ -163,7 +163,7 @@ class mod_exagames_mod_form extends moodleform_mod
             $a = new StdClass;
             $a->linkTag = '<a href="'.$CFG->wwwroot.'/course/modedit.php?add=quiz&type='.$type.'&course='.$COURSE->id.'&section='.$section.'&return='.$return.'">';
             $redirect = $CFG->wwwroot.'/course/modedit.php?add=quiz&type='.$type.'&course='.$COURSE->id.'&section='.$section.'&return='.$return;
-            print_error('noquizzesincourse', 'exagames', $redirect, $a);
+            exagames_print_error('noquizzesincourse', 'exagames', $redirect, $a);
         }*/
 
 

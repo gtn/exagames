@@ -6,17 +6,17 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 $id = required_param('cmid', PARAM_INT); // Course module id
 
 if (!$cm = get_coursemodule_from_id('quiz', $id)) {
-    print_error('invalidcoursemodule');
+    exagames_print_error('invalidcoursemodule');
 }
 if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
-    print_error("coursemisconf");
+    exagames_print_error("coursemisconf");
 }
 if (!$quiz = $DB->get_record('quiz', array('id' => $cm->instance))) {
-    print_error('invalidcoursemodule');
+    exagames_print_error('invalidcoursemodule');
 }
 
 if (!$quiz = $DB->get_record('quiz', array('id' => $cm->instance))) {
-    print_error('invalidcoursemodule');
+    exagames_print_error('invalidcoursemodule');
 }
 
 $quizobj = quiz::create($quiz->id, $USER->id);

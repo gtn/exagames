@@ -29,30 +29,30 @@ $responses = function_exists('optional_param_array') ? optional_param_array('res
 
 if ($id) {
 	if (! $cm = $DB->get_record("course_modules", array("id" => $id))) {
-		print_error("Course Module ID was incorrect");
+		exagames_print_error("Course Module ID was incorrect");
 	}
 
 
 
 	if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
-		print_error("Course is misconfigured");
+		exagames_print_error("Course is misconfigured");
 	}
 
 
 	if (! $game = exagames_get_game_instance($cm->instance)) {
-        print_error("Game not found");
+        exagames_print_error("Game not found");
 	}
 
 } else {
     $exagame = $DB->get_record('exagames', ['id' => @$PAGE->cm->instance]);
 	if (! $game = $DB->get_record("exagames", array("id" => $exagame->id))) {
-		print_error("Course module is incorrect");
+		exagames_print_error("Course module is incorrect");
 	}
 	if (! $course = $DB->get_record("course", array("id" => $game->course))) {
-		print_error("Course is misconfigured");
+		exagames_print_error("Course is misconfigured");
 	}
 	if (! $cm = get_coursemodule_from_instance("exagames", $game->id, $course->id)) {
-		print_error("Course Module ID was incorrect");
+		exagames_print_error("Course Module ID was incorrect");
 	}
 }
 
@@ -223,7 +223,7 @@ foreach ($quiz->questions as $question) {
 		$xmlQuestion->feedbacks->truefeedback = exagames_html_to_text($question->truefeedback);
 		$xmlQuestion->feedbacks->falsefeedback = exagames_html_to_text($question->falsefeedback);
 	} else {
-		print_error("Questiontype is not supported! Please use truefalse, or multichoice!");
+		exagames_print_error("Questiontype is not supported! Please use truefalse, or multichoice!");
 	}
 }
 header('Content-Type: text/xml; charset=utf-8');
@@ -281,7 +281,7 @@ if (has_capability('moodle/course:manageactivities', $context) && $action == 'co
 	$questionId  = optional_param('questionid', '', PARAM_INT);
 
 	if (!isset($quiz->questions[$questionId])) {
-		print_error('wrong question');
+		exagames_print_error('wrong question');
 	}
 
 	$question = $quiz->questions[$questionId];

@@ -9,7 +9,7 @@ if (!version_compare(PHP_VERSION, '5.2.0', '>=')) {
 height="100" width="283" alt="Support GoPHP5.org" />
 </a></div>';
 
-   	print_error("version_5.2.0_needed", "exabisgames");
+   	exagames_print_error("version_5.2.0_needed", "exabisgames");
 }
 
 function exabisgames_normalize_version($version) {
@@ -30,5 +30,5 @@ if (!version_compare($CFG->release, '1.9', '>=')) {
 	$params = new StdClass;
 	$params->needed = '1.9+';
 	$params->current = $CFG->release;
-   	print_error("environmentrequireversion", "admin", null, $params);
+   	exagames_print_error("environmentrequireversion", "admin", null, $params);
 }

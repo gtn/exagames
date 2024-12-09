@@ -296,7 +296,7 @@ function exagames_load_quiz($quizid) {
     ", [$quizid]);
 
     if ($questions == null) {
-		print_error('quiznotfound');
+		exagames_print_error('quiznotfound');
 	}
 
 	// read questions accoridng to the sorting
@@ -583,4 +583,8 @@ function exagames_get_string($string, $library = null)
 		return $manager->get_string($string, 'exagames');
 
 	return $manager->get_string($string, $library);
+}
+
+function exagames_print_error($errorcode, $module = 'error', $link = '', $a = null, $debuginfo = null) {
+    throw new \moodle_exception($errorcode, $module, $link, $a, $debuginfo);
 }
