@@ -319,11 +319,12 @@ function exagames_load_quiz($quizid) {
             WHERE qaw.question = ?
         ",[$question->id]);
 		// only load multichoice and truefalse
-		$question->answers = $answers;
-		if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question))
-			continue;
-			
-		$question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
+        $question->answers = $answers;
+        if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question)) {
+            continue;
+        }
+
+        $question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
 		$quiz->sumgrades += $question->maxmark;
 		$quiz->questions[$question->id] = $question;
 		
