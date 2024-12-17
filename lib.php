@@ -554,6 +554,7 @@ function exagames_html_to_text($text)
 	$text = str_replace(array("\r", "\n"), '', $text);
 	$text = preg_replace("!<(p|br)[^a-z]*>!iU", "\n", $text);
 	$text = strip_tags($text);
+    $text = html_entity_decode($text);
 	$text = trim($text);
 
 	return $text;
