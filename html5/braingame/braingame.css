@@ -106,8 +106,13 @@ li.alternative-inline {
 
 .wrong-image,
 .correct-image {
-	height:16px;
-	width:16px;
+	height: 16px;
+	width: 16px;
 	background-size: 16px 16px;
-	float:right;
+	float: right;
+	/*background-image: url('/mod/exagames/html5/braingame/assets/cancel.png');*/
+	position: absolute;
+	top: 50%;
+	right: 10px;
+	transform: translateY(-50%);
 }

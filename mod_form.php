@@ -76,12 +76,26 @@ class mod_exagames_mod_form extends moodleform_mod
                 ORDER BY ca.name")) {
 
             foreach ($recs as $key => $rec) {
-				$qTestRec = $DB->get_records_sql("
+				/*$qTestRec = $DB->get_records_sql("
                     SELECT qu.* FROM {$CFG->prefix}question_bank_entries as ba
                         INNER JOIN {$CFG->prefix}question_versions as qv on ba.id = qv.questionbankentryid
                         INNER JOIN {$CFG->prefix}question as qu on qu.id = qv.questionid 
                     WHERE ba.questioncategoryid = ? AND qu.qtype IN ('".implode('\', \'', $allowedQuestionTypes)."')",
-                    [intval($rec->id)]); 				
+                    [intval($rec->id)]);*/
+                $qTestRec = $DB->get_records_sql("
+			        SELECT qu.* 
+			                FROM {$CFG->prefix}question_bank_entries as en
+			                    INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
+			                    INNER JOIN {$CFG->prefix}question as qu on qv.questionid = qu.id 
+			                WHERE en.questioncategoryid = ?
+			                    AND qv.id = (
+			                        SELECT MAX(qv_inner.id)
+			                            FROM {$CFG->prefix}question_versions AS qv_inner
+			                            WHERE qv_inner.questionbankentryid = qv.questionbankentryid
+			                                AND qv_inner.status = 'ready'
+			                    );
+    			", [intval($rec->id)]);
+
 	            // ignore empty quizzes (with no any suitable type questions)
 	            if (!$qTestRec || !count($qTestRec)) {
 					continue;

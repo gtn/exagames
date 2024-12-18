@@ -287,12 +287,28 @@ function exagames_load_quiz($quizid) {
 	global $CFG, $DB, $USER;
 	$quizid = (int)$quizid;
 
-    $questions = $DB->get_records_sql("
+    // This request gets all variants of every question.
+/*    $questions = $DB->get_records_sql("
         SELECT qu.* 
         FROM {$CFG->prefix}question_bank_entries as en
             INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
             INNER JOIN {$CFG->prefix}question as qu on qv.questionid = qu.id 
         WHERE en.questioncategoryid = ?
+    ", [$quizid]);*/
+    // We need to use only last (actual) version, so - use next one:
+    $questions = $DB->get_records_sql("
+        SELECT qu.*, qopt.single as single
+                FROM {$CFG->prefix}question_bank_entries as en
+                    INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
+                    INNER JOIN {$CFG->prefix}question as qu on qv.questionid = qu.id
+                    LEFT JOIN {$CFG->prefix}qtype_multichoice_options AS qopt ON qopt.questionid = qu.id 
+                WHERE en.questioncategoryid = ?
+                    AND qv.id = (
+                        SELECT MAX(qv_inner.id)
+                            FROM {$CFG->prefix}question_versions AS qv_inner
+                            WHERE qv_inner.questionbankentryid = qv.questionbankentryid
+                                AND qv_inner.status = 'ready'
+                    );
     ", [$quizid]);
 
     if ($questions == null) {
@@ -309,20 +325,27 @@ function exagames_load_quiz($quizid) {
 
 	$quizobj->preload_questions();
     $quizobj->load_questions();*/
-    foreach ($questions as $question)
+    foreach ($questions as $questionRes)
 	{
-		$question = question_bank::make_question($question);
+
+		$question = question_bank::make_question($questionRes);
+//        $question = question_bank::get_qtype($questionRes->qtype, false)->make_question($questionRes, false);
+
+        if (!isset($question->single)) {
+            $question->single = $questionRes->single; // Add manual 'single' marker.
+        }
+
+        // only load multichoice and truefalse
+        if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question)) {
+            continue;
+        }
         $answers = $DB->get_records_sql("
             SELECT qaw.* 
             FROM {$CFG->prefix}question as qu 
                 INNER JOIN {$CFG->prefix}question_answers as qaw on qu.id = qaw.question 
             WHERE qaw.question = ?
         ",[$question->id]);
-		// only load multichoice and truefalse
         $question->answers = $answers;
-        if (!($question instanceof qtype_multichoice_base) and !($question instanceof qtype_truefalse_question)) {
-            continue;
-        }
 
         $question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
 		$quiz->sumgrades += $question->maxmark;

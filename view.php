@@ -197,10 +197,12 @@ if ($action == 'data') {
 
 
 			$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
+            /** @var qtype_multichoice_base $question */
 			if ($question->get_type_name() == 'multichoice') {
 
 				$xmlQuestion->setAttributes(array(
-					'single' => (int) ($question instanceof qtype_multichoice_single_question)
+//					'single' => (int) ($question instanceof qtype_multichoice_single_question)
+					'single' => (int) $question->single
 				));
 
 				$answers = $xmlQuestion->addChild('answers');
@@ -215,9 +217,19 @@ if ($action == 'data') {
 				$xmlQuestion->feedbacks->incorrect = exagames_html_to_text($question->incorrectfeedback);
 
 			} elseif ($question->get_type_name() == 'truefalse') {
+				/** @var qtype_truefalse_question $question */
+				// This $rightanswer is not working in new Moodle versions.
+//                $rightanswer = $question->rightanswer;
+				// Get it manually:
+                foreach ($question->answers as $answer) {
+                    if ((float) $answer->fraction > 0.99) {
+						// convert to bool
+                        $rightanswer = filter_var($answer->answer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                    }
+                }
 
 				$xmlQuestion->setAttributes(array(
-					'correctanswer' => (int) $question->rightanswer
+					'correctanswer' => (int) $rightanswer
 				));
 
 				$xmlQuestion->feedbacks->truefeedback = exagames_html_to_text($question->truefeedback);
