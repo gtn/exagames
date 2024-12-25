@@ -59,6 +59,11 @@ $string['gametype_help'] = 'Exabis-Games beinhaltet derzeit 2 Spiele:
 $string['quizid_help'] = 'Wählen Sie ein Quiz aus, welches für diese Spiel-Instanz von exagames verwendet werden soll.';
 $string['url'] = 'Url';
 $string['url_help'] = 'paste your gamelabs.at-adventure game here to embed it.<br /><br />this option will only work with a gamelabs-game-link and does not need Moodle-questions.';
+// completion
+$string['completion_mingrade'] = 'Minimum score to pass';
+$string['completiondetail:minscore'] = 'Get at least {$a} scores';
+$string['completionminscore'] = 'Minimum score to pass (%)';
+
 // Games
 $string['game_braingame'] = 'braingame';
 $string['game_tiles'] = 'exaclick';

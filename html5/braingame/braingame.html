@@ -773,7 +773,6 @@
 
 		function handleAnswer(e, type) {
 			$('#contentContainer').css('pointer-events', 'none');
-			debugger
 			if(type === 'single-choice') {
 				singleAlternativeHandler(e, e.currentTarget.id.substr(e.currentTarget.id.length-1));
 			} else if(type === 'multiple-choice') {

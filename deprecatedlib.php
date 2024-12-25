@@ -15,18 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO
- *
- * @package   EXAGAMES_FRANKENSTYLE
- * @copyright EXAGAMES
+ * @package   mod_exagames
+ * @copyright 2024 Sergey Zavarzin <szavarzin@gtn-solutions.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024121903;
-$plugin->requires = 2010112400;
-$plugin->cron      = 0;
-$plugin->component = 'mod_exagames';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release  = 'v1.1';
+/**
+ * @deprecated since Moodle 3.11
+ */
+function exagames_get_completion_state() {
+    $completionclass = \mod_exagames\completion\custom_completion::class;
+    throw new coding_exception(__FUNCTION__ . "() has been removed, please use the '{$completionclass}' class instead");
+}

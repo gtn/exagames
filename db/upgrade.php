@@ -18,8 +18,8 @@
 // using the functions defined in lib/ddllib.php
 
 function xmldb_exagames_upgrade($oldversion=0) {
-
     global $CFG, $THEME, $DB;
+    $dbman = $DB->get_manager();
 
     $result = true;
 
@@ -96,6 +96,21 @@ function xmldb_exagames_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2024102900, 'exagames');
 
     }
+
+    if ($oldversion < 2024121902) {
+
+        // Define field completionexagamegrade to use in custom completion
+        $table = new xmldb_table('exagames');
+        $field = new xmldb_field('completionminscore', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, '0');
+        // Conditionally launch add field createdinapp.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Exaport savepoint reached.
+        upgrade_mod_savepoint(true, 2024121902, 'exagames');
+    }
+
 
     return $result;
 }

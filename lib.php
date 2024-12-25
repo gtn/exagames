@@ -30,7 +30,11 @@ function exagames_add_instance($game)
 {
 	global $DB;
     $game->timecreated = time();
-	if (!$game->introformat) $game->introformat = '';
+    if (!$game->introformat) {
+        $game->introformat = '';
+    }
+
+    exagames_process_options($game);
 
     if (!$game->id = $DB->insert_record("exagames", $game)) {
         return false;
@@ -53,17 +57,16 @@ function exagames_add_instance($game)
 function exagames_update_instance($game)
 {
 	global $DB, $PAGE;
+
+    exagames_process_options($game);
+
 	$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
 	$game->id = $exagame->id;
 
 	if ($game->gametype == "gamelabs" && !$game->url) {
         return false;
     }
-	
-    $game->timemodified = time();
-	if (!$game->introformat) {
-        $game->introformat = '';
-    }
+
     if (!$DB->update_record("exagames", $game)) {
         return false;  // some error occurred
     }
@@ -74,6 +77,28 @@ function exagames_update_instance($game)
     }
 
     return true;
+}
+
+/**
+ * Pre-process the game options form data, making any necessary adjustments.
+ * Called by add/update instance in this file.
+ *
+ * @param stdClass $game The variables set on the form.
+ */
+function exagames_process_options($game) {
+    $game->name = trim($game->name);
+    $game->timemodified = time();
+    if (!$game->introformat) {
+        $game->introformat = '';
+    }
+
+    // Ensure that disabled checkboxes in completion settings are set to 0.
+    // But only if the completion settinsg are unlocked.
+    if (!empty($game->completionunlocked)) {
+        if (empty($game->completionminscoreenabled)) {
+            $game->completionminscore = 0;
+        }
+    }
 }
 
 /**
@@ -613,3 +638,75 @@ function exagames_get_string($string, $library = null)
 function exagames_print_error($errorcode, $module = 'error', $link = '', $a = null, $debuginfo = null) {
     throw new \moodle_exception($errorcode, $module, $link, $a, $debuginfo);
 }
+
+/**
+ * @param string $feature FEATURE_xx constant for requested feature
+ * @return mixed True if module supports feature, false if not, null if doesn't know or string for the module purpose.
+ */
+function exagames_supports($feature) {
+    switch ($feature) {
+        case FEATURE_COMPLETION_TRACKS_VIEWS:   return true;
+        case FEATURE_COMPLETION_HAS_RULES:      return true;
+//        case FEATURE_GRADE_HAS_GRADE:           return true;
+//        case FEATURE_GRADE_OUTCOMES:            return true;
+//        case FEATURE_CONTROLS_GRADE_VISIBILITY: return true;
+        default: return null;
+    }
+}
+
+/**
+ * Given a course_module object, this function returns any "extra" information that may be needed
+ * when printing this activity in a course listing.  See get_array_of_activities() in course/lib.php.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info An object on information that the courses
+ *                        will know about (most noticeably, an icon).
+ */
+function exagames_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $dbparams = ['id' => $coursemodule->instance];
+    $fields = 'id, name, intro, introformat, completionminscore';
+    if (!$game = $DB->get_record('exagames', $dbparams, $fields)) {
+        return false;
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $game->name;
+
+    if ($coursemodule->showdescription) {
+        // Convert intro to html. Do not filter cached version, filters run at display time.
+        $result->content = format_module_intro('game', $game, $coursemodule->id, false);
+    }
+
+    // Populate the custom completion rules as key => value pairs, but only if the completion mode is 'automatic'.
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $result->customdata['customcompletionrules']['completionminscore'] = $game->completionminscore;
+    }
+
+    return $result;
+}
+
+/**
+ * Callback which returns human-readable strings describing the active completion custom rules for the module instance.
+ *
+ * @param cm_info|stdClass $cm object with fields ->completion and ->customdata['customcompletionrules']
+ * @return array $descriptions the array of descriptions for the custom rules.
+ */
+function mod_exagames_get_completion_active_rule_descriptions($cm) {
+    // Values will be present in cm_info, and we assume these are up to date.
+    if (empty($cm->customdata['customcompletionrules'])
+        || $cm->completion != COMPLETION_TRACKING_AUTOMATIC) {
+        return [];
+    }
+
+    $descriptions = [];
+    $rules = $cm->customdata['customcompletionrules'];
+
+    if (!empty($rules['completionminscore'])) {
+        $descriptions[] = get_string('completionminscore', 'exagames', $rules['completionminscore']);
+    }
+
+    return $descriptions;
+}
+

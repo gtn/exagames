@@ -88,6 +88,7 @@ class mod_exagames_mod_form extends moodleform_mod
 			                    INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
 			                    INNER JOIN {$CFG->prefix}question as qu on qv.questionid = qu.id 
 			                WHERE en.questioncategoryid = ?
+			                  	AND qu.qtype IN ('".implode('\', \'', $allowedQuestionTypes)."')
 			                    AND qv.id = (
 			                        SELECT MAX(qv_inner.id)
 			                            FROM {$CFG->prefix}question_versions AS qv_inner
@@ -300,7 +301,7 @@ class mod_exagames_mod_form extends moodleform_mod
                     handleQuizSelectParam(true);
                 });
 
-                $('.mainContainer').on('load', function(){
+                $('.mainContainer').on('load', function() {
                     alert("test");
                     alert("<?php echo get_string('tiles_difficultyLabel_hard', 'exagames'); ?>");
                     $("iframe").contents().find('#difficultyLabel').html("<?php echo get_string('tiles_difficultyLabel', 'exagames'); ?>");
@@ -561,22 +562,175 @@ class mod_exagames_mod_form extends moodleform_mod
             $mform->addElement('static', 'label2', 'exagamessetting2', 'Your exagames fields go here. Replace me!');
         */
 
-//-------------------------------------------------------------------------------
+		//-------------------------------------------------------------------------------
         // add standard elements, common to all modules
         $this->standard_coursemodule_elements();
-//-------------------------------------------------------------------------------
+
+		//-------------------------------------------------------------------------------
         // add standard buttons, common to all modules
         $this->add_action_buttons();
 
     }
 
-    public function definition_after_data() {
-        $mform = $this->_form;
+    public function get_data()
+    {
+        $data = parent::get_data();
+        if (!$data) {
+            return $data;
+        }
+        if (!empty($data->completionunlocked)) {
+            $suffix = $this->get_suffix();
+            // Turn off completion settings if the checkboxes aren't ticked.
+            $autocompletion = !empty($data->{'completion'.$suffix}) && $data->{'completion'.$suffix} == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionminscoreenabled'.$suffix}) || !$autocompletion) {
+                $data->{'completionminscore'.$suffix} = 0;
+            }
+        }
+        return $data;
+    }
 
-        // Force the quic id by needed value
+    public function definition_after_data() {
+        $mform =& $this->_form;
+
+        // Force the quiz id by needed value
         if ($this->replaceQuizId) {
             $mform->setDefault('quizid', $this->replaceQuizId);
         }
+
+        parent::definition_after_data();
+
+    }
+
+    public function data_preprocessing(&$toform) {
+
+		parent::data_preprocessing($toform);
+
+        $suffix = $this->get_suffix();
+        $completionminscoreel = 'completionminscore' . $suffix;
+        if (empty($toform[$completionminscoreel])) {
+            $toform[$completionminscoreel] = 0;
+        } else {
+            $completionminscoreenabledel = 'completionminscoreenabled' . $suffix;
+            $toform[$completionminscoreenabledel] = $toform[$completionminscoreel] > 0;
+        }
+
+    }
+
+    /**
+     * Allows module to modify the data returned by form get_data().
+     * This method is also called in the bulk activity completion form.
+     *
+     * Only available on moodleform_mod.
+     *
+     * @param stdClass $data the form data to be modified.
+     */
+    public function data_postprocessing($data) {
+        parent::data_postprocessing($data);
+        // Turn off completion settings if the checkboxes aren't ticked.
+        if (!empty($data->completionunlocked)) {
+            // Turn off completion settings if the checkboxes aren't ticked.
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionminscoreenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionminscore' . $suffix} = 0;
+            }
+        }
+    }
+
+    public function validation($data, $files)
+    {
+        $errors = parent::validation($data, $files);
+
+        $suffix = $this->get_suffix();
+        $completionminscoregroupel = 'completionminscore' . $suffix;
+        if (!empty($data[$completionminscoregroupel])) {
+            if ($data[$completionminscoregroupel] >= 0) {
+                if ($data[$completionminscoregroupel] > 100) {
+                    $completionminscoregroupel = 'completionminscoregroup' . $suffix;
+                    $errors[$completionminscoregroupel] = 'The score cannot be greater than 100';
+                }
+            } else {
+                $completionminscoregroupel = 'completionminscoregroup' . $suffix;
+                $errors[$completionminscoregroupel] = 'The score can not be less than 0';
+            }
+        }
+
+		return $errors;
+    }
+
+    /**
+     * Display module-specific activity completion rules.
+     * Part of the API defined by moodleform_mod
+     * @return array Array of string IDs of added items, empty array if none
+     */
+    public function add_completion_rules() {
+        $mform = $this->_form;
+        $suffix = $this->get_suffix();
+
+        $group = [];
+        $completionminscoreenabledel = 'completionminscoreenabled' . $suffix;
+        $group[] = $mform->createElement(
+            'checkbox',
+            $completionminscoreenabledel,
+            '',
+            get_string('completionminscore', 'exagames')
+        );
+        $completionminscoreel = 'completionminscore' . $suffix;
+        $group[] = $mform->createElement('text', $completionminscoreel, '', ['size' => 5]);
+        $mform->setType($completionminscoreel, PARAM_FLOAT);
+        $completionminscoregroupel = 'completionminscoregroup' . $suffix;
+        $mform->addGroup($group, $completionminscoregroupel, '', ' ', false);
+        $mform->hideIf($completionminscoreel, $completionminscoreenabledel, 'notchecked');
+
+        return [$completionminscoregroupel];
+    }
+
+    /**
+     * IS NOT USED -  moved into higher level in 'add_completion_rules'
+     * Add completion grading elements to the form and return the list of element ids.
+     *
+     * @return array Array of string IDs of added items, empty array if none
+     * @deprecated
+     */
+//    public function add_completiongrade_rules(): array {
+//		return [];
+        /*$mform = $this->_form;
+        $suffix = $this->get_suffix();
+
+        $completionpassgradeel = 'completionpassgrade' . $suffix;
+        $completionexagamegradeel = 'completionexagamegrade' . $suffix;
+        $group = [];
+        $group[] = $mform->createElement('html', '<span style="margin: 0px 5px;">'.get_string('completion_mingrade', 'exagames').'</span>');
+        $group[] = $mform->createElement('text', $completionexagamegradeel, '', ['size' => 7]);
+        $group[] = $mform->createElement('html', '<span style="margin: 0px 5px;">%</span>');
+        $mform->setType($completionexagamegradeel, PARAM_FLOAT);
+        $completionexagamegradegroupel = 'completionexagamegradegroup' . $suffix;
+        $mform->addGroup($group, $completionexagamegradegroupel, '', ' ', false);
+        $mform->hideIf($completionexagamegradegroupel, $completionpassgradeel, 'notchecked');
+        $mform->hideIf($completionexagamegradegroupel, $completionpassgradeel, 'notchecked');
+        return [$completionexagamegradegroupel];*/
+
+        /*$mform->createElement('text', $completionexagamegradeel, '', ['size' => 7]);
+        $mform->addElement(
+            'text',
+            $completionexagamegradeel,
+            '',
+            ['size' => '7']
+        );
+        $mform->hideIf($completionexagamegradeel, $completionpassgradeel, 'notchecked');
+        return [$completionexagamegradeel];*/
+//    }
+
+    /**
+     * Called during validation. Indicates whether a module-specific completion rule is selected.
+     *
+     * @param array $data Input data (not yet validated)
+     * @return bool True if one or more rules is enabled, false if none are.
+     */
+    public function completion_rule_enabled($data) {
+        $suffix = $this->get_suffix();
+        return  !empty($data['completionminscoreenabled' . $suffix]);
     }
 
 

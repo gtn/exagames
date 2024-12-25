@@ -150,10 +150,18 @@ if ($action == 'data') {
 		$scoreDb->userid = $USER->id;
 		$scoreDb->gameid = $game->id;
 		$scoreDb->gametype = $game->gametype;
-		$scoreDb->score = intval($score*100);
+		$scoreDb->score = intval($score * 100);
 		$scoreDb->time = time();
 
 		$DB->insert_record('exagames_scores', $scoreDb);
+
+        // Update completion state.
+        $completion = new completion_info($course);
+        if ($completion->is_enabled($cm) == COMPLETION_TRACKING_AUTOMATIC
+	        && $game->completionminscore
+            ) {
+            $completion->update_state($cm, COMPLETION_COMPLETE);
+        }
 
 		echo 'ok=1';
 
@@ -246,6 +254,8 @@ if ($action == 'data') {
 	}
 }
 
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
 
 $context = context_module::instance($cm->id);
 /*if (has_capability('moodle/course:manageactivities', $context) && ($action == 'configure_questions') && ($questionId = optional_param('questionid', '', PARAM_INT)) && isset($quiz->questions[$questionId]) && ($content_url = optional_param('content_url', '', PARAM_TEXT))) {
@@ -466,7 +476,7 @@ exagames_print_tabs($game, 'show');
 
 /// Print the main part of the page
 
-if($game->gametype != 'gamelabs') {
+if ($game->gametype != 'gamelabs') {
 	$partUrl = explode("/", $_SERVER['PHP_SELF'], 2);
 	$pos = strpos($partUrl[1], "/");
 	$url = new moodle_url(substr($partUrl[1], $pos), array('id'=>$id));
@@ -491,7 +501,7 @@ if($game->gametype != 'gamelabs') {
 	var params = {};
 	var attributes = {};
 	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
-	if(gameType == 'braingame') {
+	if (gameType == 'braingame') {
 		$(document).ready(function(){
 				$( "#GameContent" ).empty();
 				$( "#GameContent" ).load('./html5/braingame/braingame.html');
@@ -540,6 +550,8 @@ echo '
   <p>iframe is not working</p>
 </iframe>';
 }
+
+/* 5 TOP scores. Disabled. TODO: Need to be changed (by groups|course or configurable)
 $sql = "SELECT s.id, s.score, u.firstname, u.lastname ".
 	"FROM {exagames_scores} s JOIN {user} u ON u.id=s.userid ".
 	"WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."' ORDER BY score DESC LIMIT 0,5";
@@ -562,6 +574,7 @@ foreach ($res as $rs) {
 </div>
 <?php
 endif;
+*/
 
 /// Finish the page
 echo $OUTPUT->footer();
