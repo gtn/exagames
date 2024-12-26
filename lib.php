@@ -710,3 +710,39 @@ function mod_exagames_get_completion_active_rule_descriptions($cm) {
     return $descriptions;
 }
 
+/**
+ *
+ * @param int $courseid
+ * @param int $userid
+ */
+function exagames_is_teacher($courseid, $userid = null) {
+    global $DB, $USER;
+    static $teacherroleids = null;
+    if ($teacherroleids === null) {
+        // teacherroleid id: teacher, .... TODO: may be also add: coursecreator, ...
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']); // Get the teacherroleid object by shortname ('teacher')
+        $editingteacherrole = $DB->get_record('role', ['shortname' => 'editingteacher']);
+        $teacherroleids = [$teacherrole->id, $editingteacherrole->id];
+
+    }
+    static $coursecontextid = null;
+    if ($coursecontextid === null) {
+        $coursecontext = context_course::instance($courseid);
+        $coursecontextid = $coursecontext->id;
+    }
+
+    if (!$userid) {
+        $userid = $USER->id;
+    }
+
+    // Check if the user has the teacher teacherroleid in the course
+    if ($teacherroleids) {
+        foreach ($teacherroleids as $roleid) {
+            if (user_has_role_assignment($userid, $roleid, $coursecontextid)) {
+                // At leaste one 'teacher' role
+                return true;
+            }
+        }
+    }
+    return false;
+}

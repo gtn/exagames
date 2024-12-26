@@ -203,8 +203,6 @@ class mod_exagames_mod_form extends moodleform_mod
         $this->replaceQuizId = $selectedQuiz;
 
         $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $quizzes, ['onChange' => 'handleQuizSelectParam();']);
-		// set the value from code above
-//        $mform->setDefault('quizid', $selectedQuiz);
         $mform->addHelpButton('quizid', 'quizid', 'exagames');
         $mform->addRule('quizid', null, 'required', null, 'client');
 
@@ -562,6 +560,79 @@ class mod_exagames_mod_form extends moodleform_mod
             $mform->addElement('static', 'label2', 'exagamessetting2', 'Your exagames fields go here. Replace me!');
         */
 
+	    // To show TOP results
+        $mform->addElement('header', 'showtopresultshdr',
+            get_string('showtopresults.settingsHeader', 'exagames'));
+        $mform->addHelpButton('showtopresultshdr', 'showtopresults.settingsHeader', 'exagames');
+
+        // Get all cohorts
+        require_once ($CFG->dirroot.'/cohort/lib.php');
+        $cohorts = cohort_get_all_cohorts();
+        $cohortstoselect = [];
+        if (@$cohorts['cohorts']) {
+			foreach ($cohorts['cohorts'] as $cohort) {
+				if ($cohort->visible) {
+                    $cohortstoselect[$cohort->id] = $cohort->name;
+				}
+            }
+		}
+        // Get all groups (for the course)
+        $groups = groups_get_all_groups($COURSE->id);
+        $groupstoselect = [];
+        if (@$groups) {
+			foreach ($groups as $group) {
+                $groupstoselect[$group->id] = $group->name;
+            }
+		}
+
+		// type selector
+        $topresults = array(
+            'none' => get_string('showtopresults.item.none', 'exagames'),
+            'all' => get_string('showtopresults.item.all', 'exagames'),
+            'ownCohorts' => get_string('showtopresults.item.byOwnCohorts', 'exagames'),
+            'selectedCohort' => get_string('showtopresults.item.bySelectedCohort', 'exagames'),
+            'ownGroups' => get_string('showtopresults.item.byOwnGroups', 'exagames'),
+            'selectedGroup' => get_string('showtopresults.item.bySelectedGroup', 'exagames'),
+        );
+        $mform->addElement('select', 'showtopresults', get_string('showtopresults.select', 'exagames'), $topresults);
+        $mform->addHelpButton('showtopresults', 'showtopresults.select', 'exagames');
+
+	    // Cohort selector
+        if (@$cohorts['cohorts']) {
+            $mform->addElement('select', 'showtopresultscohort', get_string('showtopresults.selectCohort', 'exagames'), $cohortstoselect);
+            // Hide 'showtopresultscohort' unless 'showtopresults' has the value 'selectedGroup'
+            $mform->hideIf('showtopresultscohort', 'showtopresults', 'neq', 'selectedCohort');
+        } else {
+            $mform->addElement('static', 'noanycohortmessage', '', html_writer::tag('span', get_string('showtopresults.noanycohort', 'exagames'), ['class' => 'text-danger']));
+            // Hide 'noanycohortmessage' unless 'showtopresults' has the value 'selectedGroup'
+            $mform->hideIf('noanycohortmessage', 'showtopresults', 'neq', 'selectedCohort');
+        }
+
+		// Group selector
+        if (@$groups) {
+            $mform->addElement('select', 'showtopresultsgroup', get_string('showtopresults.selectGroup', 'exagames'), $groupstoselect);
+            // Hide 'showtopresultsgroup' unless 'showtopresults' has the value 'selectedGroup'
+            $mform->hideIf('showtopresultsgroup', 'showtopresults', 'neq', 'selectedGroup');
+        } else {
+            $mform->addElement('static', 'noanygroupmessage', '', html_writer::tag('span', get_string('showtopresults.noanygroup', 'exagames'), ['class' => 'text-danger']));
+            // Hide 'noanygroupmessage' unless 'showtopresults' has the value 'selectedGroup'
+            $mform->hideIf('noanygroupmessage', 'showtopresults', 'neq', 'selectedGroup');
+        }
+		// 'required' rule - does not work well still
+//        $mform->addRule('showtopresultscohort', get_string('required'), 'required', null, 'client');
+
+		// Secure name toggler
+        $mform->addElement('advcheckbox', 'securenames', get_string('showtopresults.hideUserName', 'exagames'));
+        $mform->addHelpButton('securenames', 'showtopresults.hideUserName', 'exagames');
+		$mform->setDefault('securenames', 0);
+        $mform->hideIf('securenames', 'showtopresults', 'eq', 'none');
+
+	    // Hide teachers toggler
+        $mform->addElement('advcheckbox', 'hideteachers', get_string('showtopresults.hideTeachers', 'exagames'));
+        $mform->addHelpButton('hideteachers', 'showtopresults.hideTeachers', 'exagames');
+        $mform->setDefault('hideteachers', 0);
+        $mform->hideIf('hideteachers', 'showtopresults', 'eq', 'none');
+
 		//-------------------------------------------------------------------------------
         // add standard elements, common to all modules
         $this->standard_coursemodule_elements();
@@ -655,6 +726,10 @@ class mod_exagames_mod_form extends moodleform_mod
                 $errors[$completionminscoregroupel] = 'The score can not be less than 0';
             }
         }
+		// 'required' for selected cohort:
+//        if ($data['showtopresults'] === 'selectedGroup' && empty($data['showtopresultscohort'])) {
+//            $errors['showtopresultscohort'] = get_string('required');
+//        }
 
 		return $errors;
     }

@@ -551,30 +551,120 @@ echo '
 </iframe>';
 }
 
-/* 5 TOP scores. Disabled. TODO: Need to be changed (by groups|course or configurable)
-$sql = "SELECT s.id, s.score, u.firstname, u.lastname ".
-	"FROM {exagames_scores} s JOIN {user} u ON u.id=s.userid ".
-	"WHERE score>0 AND gameid='".$game->id."' AND gametype='".$game->gametype."' ORDER BY score DESC LIMIT 0,5";
-
-$res = $DB->get_records_sql($sql);
-
-if ($res):
-?>
-<div style="text-align: center; font-size: 18px;margin-top:15px;">
-5 Top Scores:
-</div>
-<div style="text-align: center;margin:10px 0;">
-<table "align=center" style="margin: 0 auto;">
-<?php
-foreach ($res as $rs) {
-	echo "<tr><td align=left style='padding-right:15px;'>".$rs->firstname." ".$rs->lastname."</td><td align=right>".$rs->score."</td></tr>";
+// 5 TOP scores.
+$showtopscores = $game->showtopresults;
+$showtop = false;
+switch ($showtopscores) {
+	case 'all':
+        $userids = []; // for ALL users
+        $showtop = true;
+		break;
+	case 'ownCohorts':
+    case 'selectedCohort':
+        $showtop = true;
+        require_once ($CFG->dirroot.'/cohort/lib.php');
+		if ($showtopscores == 'ownCohorts') {
+			// all player cohorts
+            $cohorts = cohort_get_user_cohorts($USER->id);
+            $cohortids = array_map(function($item) {return $item->id;}, $cohorts);
+		} else {
+			// only selected cohort
+            $cohortids = [$game->showtopresultscohort];
+		}
+		// get users by cohorts:
+        $userids = [];
+		if ($cohortids) {
+            $sql = "SELECT u.id
+        				FROM {cohort_members} cm
+        					JOIN {user} u ON cm.userid = u.id
+        				WHERE cm.cohortid IN (" . implode(',', array_fill(0, count($cohortids), '?')) . ")";
+            $users = $DB->get_records_sql($sql, $cohortids);
+            $userids = array_map(function($item) {return $item->id;}, $users);
+        }
+		break;
+	case 'ownGroups':
+    case 'selectedGroup':
+        $showtop = true;
+        if ($showtopscores == 'ownGroups') {
+            $groups = groups_get_user_groups($game->course, $USER->id);
+            $groupids = [];
+            foreach ($groups as $grouping => $tempgroupids) {
+                $groupids = array_merge($groupids, $tempgroupids);
+            }
+        } else {
+            $groupids = [$game->showtopresultsgroup];
+        }
+	    // get users by groups:
+	    $userids = [];
+        $sql = "SELECT u.id
+        			FROM {user} u
+        				JOIN {groups_members} gm ON u.id = gm.userid
+        			WHERE gm.groupid IN (" . implode(',', array_fill(0, count($groupids), '?')) . ")";
+        $users = $DB->get_records_sql($sql, $groupids);
+	    $userids = array_map(function($item) {return $item->id;}, $users);
+		break;
+	case 'none':
+	default:
+		break;
 }
-?>
-</table>
-</div>
-<?php
-endif;
-*/
 
-/// Finish the page
+if ($showtop) {
+
+	// Note: only the same gametype
+    $whereforusers = '';
+	if ($userids) {
+        $whereforusers = ' AND userid IN ('.implode(', ', $userids).') ';
+	}
+	// NOTE: shown MAX score for the user
+    $sql = 'SELECT s.id, MAX(s.score) AS score, u.firstname, u.lastname, s.userid 
+        FROM {exagames_scores} s 
+            JOIN {user} u ON u.id=s.userid 
+        WHERE 
+            score > 0 
+            AND gameid = \''.$game->id.'\'
+            AND gametype = \''.$game->gametype.'\'
+            '.$whereforusers.'
+        GROUP BY s.userid, u.firstname, u.lastname 
+        ORDER BY score DESC, time ASC 
+        LIMIT 0, 5 ';
+    $results = $DB->get_records_sql($sql);
+
+	if ($results) {
+		echo html_writer::tag('h4', get_string('showtopresults.header', 'exagames'));
+		$shownuserscounter = 0; // for limiting to 5 shown users. (not in SQL cause 'teacher' filtering)
+
+        $table = new html_table();
+		$table->size = ['50%', '50%'];
+//    $table->head = ['Name', 'Score']; // TODO: needed?
+        $table->data = []; // This will hold the rows of the table
+        foreach ($results as $user) {
+	        if ($shownuserscounter >= 5) {
+				break;
+	        }
+            // filter by 'teacher'
+            if ($game->hideteachers) {
+				if (exagames_is_teacher($game->course, $user->userid)) {
+					continue;
+				}
+            }
+
+            if ($game->securenames) {
+				// Use first lettaer of the fisrt name and random '*' strings
+                $fullname = substr($user->firstname, 0, 1) . str_repeat('*', rand(4, 7)) . ' ' . str_repeat('*', rand(4, 9));
+			} else {
+				// Use real names
+                $fullname = $user->firstname . ' ' . $user->lastname;
+            }
+            $table->data[] = [
+                $fullname,
+                $user->score,
+            ];
+            $shownuserscounter++;
+        }
+        echo html_writer::table($table);
+    }
+
+}
+
+// Finish the page
 echo $OUTPUT->footer();

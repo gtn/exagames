@@ -100,3 +100,35 @@ $string['saveButton'] = 'Save';
 $string['easyDifficulty'] = 'Easy';
 $string['interDifficulty'] = 'Medium';
 $string['hardDifficulty'] = 'Hard';
+
+// Show top results
+$string['showtopresults.header'] = '5 Top Scores:';
+$string['showtopresults.settingsHeader'] = 'Show top results';
+$string['showtopresults.settingsHeader_help'] = 'Here you can select options for showing of top scores';
+$string['showtopresults.select'] = 'Show from';
+$string['showtopresults.select_help'] = '**Default** Do not show at all
+
+**From all own groups** Will show the top scores from all groups the user belongs
+
+**From selected group** Will show the top scores from the selected group
+
+**From all users** Will show the top scores from all users who have done this game';
+$string['showtopresults.selectCohort'] = 'Choose the group';
+$string['showtopresults.selectCohort_help'] = '';
+$string['showtopresults.selectGroup'] = 'Choose the group';
+$string['showtopresults.selectGroup_help'] = '';
+
+$string['showtopresults.item.none'] = 'Do not show';
+$string['showtopresults.item.all'] = 'From all players';
+$string['showtopresults.item.byOwnCohorts'] = 'From all player cohorts';
+$string['showtopresults.item.bySelectedCohort'] = 'From selected cohort';
+$string['showtopresults.item.byOwnGroups'] = 'From all player groups';
+$string['showtopresults.item.bySelectedGroup'] = 'From selected group';
+$string['showtopresults.noanycohort'] = 'You have no any cohort';
+$string['showtopresults.noanygroup'] = 'You have no any group';
+
+// Hide from results
+$string['showtopresults.hideUserName'] = 'Hide names';
+$string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, like: N*** *****';
+$string['showtopresults.hideTeachers'] = 'Hide teacher results';
+$string['showtopresults.hideTeachers_help'] = 'Do not show results of users with \'teacher\' role';

@@ -99,16 +99,45 @@ function xmldb_exagames_upgrade($oldversion=0) {
 
     if ($oldversion < 2024121902) {
 
-        // Define field completionexagamegrade to use in custom completion
+        // Define field completionminscore to use in custom completion
         $table = new xmldb_table('exagames');
         $field = new xmldb_field('completionminscore', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, '0');
-        // Conditionally launch add field createdinapp.
+        // Conditionally launch add field completionminscore.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        // Exaport savepoint reached.
+        // Exagames savepoint reached.
         upgrade_mod_savepoint(true, 2024121902, 'exagames');
+    }
+
+    if ($oldversion < 2024122604) {
+
+        // Define more fields to use for showing top scores
+        $table = new xmldb_table('exagames');
+        $field = new xmldb_field('showtopresults', XMLDB_TYPE_CHAR, 50, null, null, null, '');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('securenames', XMLDB_TYPE_INTEGER, 2, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('hideteachers', XMLDB_TYPE_INTEGER, 2, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('showtopresultscohort', XMLDB_TYPE_INTEGER, 11, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('showtopresultsgroup', XMLDB_TYPE_INTEGER, 11, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Exagames savepoint reached.
+        upgrade_mod_savepoint(true, 2024122604, 'exagames');
     }
 
 
