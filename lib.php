@@ -17,6 +17,13 @@
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 
+
+// CONSTANTS ///////////////////////////////////////////////////////////
+define('EXAGAMES_OPTION_AS_DEFAULT', -1);
+define('EXAGAMES_OPTION_DISABLED', 0);
+define('EXAGAMES_OPTION_ENABLED', 1);
+
+
 /**
  * Given an object containing all the necessary data, 
  * (defined by the form in mod.html) this function 
@@ -745,4 +752,22 @@ function exagames_is_teacher($courseid, $userid = null) {
         }
     }
     return false;
+}
+
+
+/**
+ * Returns array of options for settings
+ *
+ * @param bool $useexperimentalui use experimental layout modes or not
+ * @return array
+ */
+function exagames_randomize_options($withDefault = false) {
+    $options = [];
+    if ($withDefault) {
+        $options[EXAGAMES_OPTION_AS_DEFAULT] = get_string('optionsList.asDefault', 'exagames');
+    }
+    $options[EXAGAMES_OPTION_DISABLED] = get_string('optionsList.disable', 'exagames');
+    $options[EXAGAMES_OPTION_ENABLED] = get_string('optionsList.enable', 'exagames');
+
+    return $options;
 }

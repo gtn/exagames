@@ -132,3 +132,44 @@ $string['showtopresults.hideUserName'] = 'Hide names';
 $string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, like: N*** *****';
 $string['showtopresults.hideTeachers'] = 'Hide teacher results';
 $string['showtopresults.hideTeachers_help'] = 'Do not show results of users with \'teacher\' role';
+
+// Main module settings
+$string['modsettings.gameparams.header'] = 'Main options';
+$string['modsettings.gameparams.header_help'] = '';
+$string['modsettings.gameparams.randomizequestions'] = 'Randomize questions';
+$string['modsettings.gameparams.randomizequestions_description'] = 'Questions in the game will be randomized by default. Every game has own parameter to change this behavior';
+$string['modsettings.gameparams.randomizeanswers'] = 'Randomize answers';
+$string['modsettings.gameparams.randomizeanswers_description'] = 'Answers in the game questions will be randomized by default. Every game has own parameter to change this behavior';
+$string['modsettings.braingameparams.header'] = 'Braingame';
+$string['modsettings.braingameparams.header_help'] = 'Options for games with "Braingame" type ';
+$string['modsettings.braingameparams.durationtime'] = 'Duration time (ms)';
+$string['modsettings.braingameparams.durationtime_description'] = 'The time between questions and after the last question. In milliseconds';
+
+$string['questionsettingshdr.settingsHeader'] = 'Question settings';
+$string['questionsettingshdr.settingsHeader_help'] = 'Here you can select some options for questions';
+$string['randomizeoptions.item.-1'] = 'As default in exagames module settings';
+$string['randomizeoptions.item.0'] = 'Disabled';
+$string['randomizeoptions.item.1'] = 'Enabled';
+$string['questionsettingshdr.randomizequestions.select'] = 'Randomize questions';
+$string['questionsettingshdr.randomizequestions.select_help'] = 'Do you need to randomize questions?
+
+**Default** Use the value from "exagames" module settings
+
+**Disabled** Use ordering as in the questions bank
+
+**Enabled** Randomize questions for every game
+';
+$string['questionsettingshdr.randomizeanswers.select'] = 'Randomize answers';
+$string['questionsettingshdr.randomizeanswers.select_help'] = 'Do you need to randomize answers?
+
+**Default** Use the value from "exagames" module settings
+
+**Disabled** Use answer ordering as in the question 
+
+**Enabled** Randomize answers for every question
+';
+
+// options for diff options
+$string['optionsList.asDefault'] = 'As the default value in module settings';
+$string['optionsList.disable'] = 'Disable';
+$string['optionsList.enable'] = 'Enable';

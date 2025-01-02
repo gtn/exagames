@@ -55,13 +55,18 @@ input {
 }
 
 li.alternative-inline {
-	display:inline;
+	/*display:inline;*/
 }
 
 .answerContainer {
 	margin: 0px 30px;
 	display: flex;
 	align-items: center;
+}
+.answerContainer label {
+	display: block;
+	width: 100%;
+	cursor: pointer;
 }
 
 .alternative {

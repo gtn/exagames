@@ -21,7 +21,8 @@
         <FIELD NAME="securenames" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" PREVIOUS="showtopresults" COMMENT="Hide user names by asterisks"/>
         <FIELD NAME="hideteachers" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" PREVIOUS="securenames" COMMENT="Hide scores of teachers"/>
         <FIELD NAME="showtopresultscohort" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false" PREVIOUS="hideteachers" COMMENT="Selected cohort to show top scores "/>
-        <FIELD NAME="showtopresultsgroup" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false" PREVIOUS="showtopresultscohort" COMMENT="Selected group to show top scores "/>
+        <FIELD NAME="randomizequestions" TYPE="int" LENGTH="11" NOTNULL="false" DEFAULT="-1" SEQUENCE="false" PREVIOUS="showtopresultscohort" COMMENT="For questions randomizing "/>
+        <FIELD NAME="randomizeanswers" TYPE="int" LENGTH="11" NOTNULL="false" DEFAULT="-1" SEQUENCE="false" PREVIOUS="randomizequestions" COMMENT="For randomizing answers "/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

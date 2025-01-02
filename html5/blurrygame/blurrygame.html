@@ -60,7 +60,11 @@
 									text: "Falsch",
 									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? false:true,
 									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 0.0:1.0
-								})
+								});
+                                if (questionNodes[i].getAttribute('randomizeanswers') == '1') {
+                                    // simple randomizing
+                                    answers.sort(() => Math.random() - 0.5);
+                                }
 							}
 							let questionObj = {
 								answers: answers

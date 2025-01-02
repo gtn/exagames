@@ -560,6 +560,24 @@ class mod_exagames_mod_form extends moodleform_mod
             $mform->addElement('static', 'label2', 'exagamessetting2', 'Your exagames fields go here. Replace me!');
         */
 
+	    // Qustions parameters
+        $mform->addElement('header', 'questionsettingshdr',
+            get_string('questionsettingshdr.settingsHeader', 'exagames'));
+        $mform->addHelpButton('questionsettingshdr', 'questionsettingshdr.settingsHeader', 'exagames');
+
+		// Randomize options
+	    $randomizeoptions = [
+				'-1' => get_string('randomizeoptions.item.-1', 'exagames'),
+				'0' => get_string('randomizeoptions.item.0', 'exagames'),
+				'1' => get_string('randomizeoptions.item.1', 'exagames'),
+	    ];
+		// Randomize questions
+        $mform->addElement('select', 'randomizequestions', get_string('questionsettingshdr.randomizequestions.select', 'exagames'), $randomizeoptions);
+        $mform->addHelpButton('randomizequestions', 'questionsettingshdr.randomizequestions.select', 'exagames');
+		// Randomize answers
+        $mform->addElement('select', 'randomizeanswers', get_string('questionsettingshdr.randomizeanswers.select', 'exagames'), $randomizeoptions);
+        $mform->addHelpButton('randomizeanswers', 'questionsettingshdr.randomizeanswers.select', 'exagames');
+
 	    // To show TOP results
         $mform->addElement('header', 'showtopresultshdr',
             get_string('showtopresults.settingsHeader', 'exagames'));
@@ -621,13 +639,13 @@ class mod_exagames_mod_form extends moodleform_mod
 		// 'required' rule - does not work well still
 //        $mform->addRule('showtopresultscohort', get_string('required'), 'required', null, 'client');
 
-		// Secure name toggler
+		// "Secure name" toggler
         $mform->addElement('advcheckbox', 'securenames', get_string('showtopresults.hideUserName', 'exagames'));
         $mform->addHelpButton('securenames', 'showtopresults.hideUserName', 'exagames');
 		$mform->setDefault('securenames', 0);
         $mform->hideIf('securenames', 'showtopresults', 'eq', 'none');
 
-	    // Hide teachers toggler
+	    // "Hide teachers" toggler
         $mform->addElement('advcheckbox', 'hideteachers', get_string('showtopresults.hideTeachers', 'exagames'));
         $mform->addHelpButton('hideteachers', 'showtopresults.hideTeachers', 'exagames');
         $mform->setDefault('hideteachers', 0);

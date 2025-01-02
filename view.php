@@ -185,7 +185,23 @@ if ($action == 'data') {
 
 		$xmlQuestions = $xmlQuiz->addChild('questions');
 
-		foreach ($quiz->questions as $question) {
+		// randomize questions, regarding game settings and module settings
+        $randomizequestions = (isset($game->randomizequestions) ? $game->randomizequestions : -1);
+		if ($randomizequestions == -1) {
+            $randomizequestions = (isset($CFG->exagames_randomize_questions) ? $CFG->exagames_randomize_questions : 0);
+		}
+        $randomizeanswers = (isset($game->randomizeanswers) ? $game->randomizeanswers : -1);
+        if ($randomizeanswers == -1) {
+            $randomizeanswers = (isset($CFG->exagames_randomize_answers) ? $CFG->exagames_randomize_answers : 0);
+        }
+
+        $questions = $quiz->questions;
+		if ($randomizequestions) {
+            $questions = array_values($questions);
+            shuffle($questions);
+        }
+
+		foreach ($questions as $question) {
 
 			$xmlQuestion = $xmlQuestions->addChild('question');
 			$xmlQuestion->setAttributes(array(
@@ -203,18 +219,22 @@ if ($action == 'data') {
 				$xmlQuestion->config->display_order = $question->display_order;
 			}
 
+			$questionAnswers = $question->answers;
+			if ($randomizeanswers) {
+                $questionAnswers = array_values($questionAnswers);
+                shuffle($questionAnswers);
+			}
 
 			$xmlQuestion->feedbacks->general = exagames_html_to_text($question->generalfeedback);
             /** @var qtype_multichoice_base $question */
 			if ($question->get_type_name() == 'multichoice') {
-
 				$xmlQuestion->setAttributes(array(
 //					'single' => (int) ($question instanceof qtype_multichoice_single_question)
 					'single' => (int) $question->single
 				));
 
 				$answers = $xmlQuestion->addChild('answers');
-				foreach ($question->answers as $answer) {
+				foreach ($questionAnswers as $answer) {
 					$xmlAnswer = $answers->addChild('answer')->setAttributes(array('id'=>$answer->id, 'fraction'=>$answer->fraction));
 					$xmlAnswer->text = exagames_html_to_text($answer->answer);
 					$xmlAnswer->feedback = exagames_html_to_text($answer->feedback);
@@ -229,7 +249,7 @@ if ($action == 'data') {
 				// This $rightanswer is not working in new Moodle versions.
 //                $rightanswer = $question->rightanswer;
 				// Get it manually:
-                foreach ($question->answers as $answer) {
+                foreach ($questionAnswers as $answer) {
                     if ((float) $answer->fraction > 0.99) {
 						// convert to bool
                         $rightanswer = filter_var($answer->answer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
@@ -237,7 +257,8 @@ if ($action == 'data') {
                 }
 
 				$xmlQuestion->setAttributes(array(
-					'correctanswer' => (int) $rightanswer
+					'correctanswer' => (int) $rightanswer,
+					'randomizeanswers' => (int) $randomizeanswers // for JS randomizing
 				));
 
 				$xmlQuestion->feedbacks->truefeedback = exagames_html_to_text($question->truefeedback);
@@ -286,15 +307,64 @@ $navlinks[] = array('name' => format_string($game->name), 'link' => '', 'type' =
 //$navigation = build_navigation($navlinks);
 $partUrl = explode("/", $_SERVER['PHP_SELF'], 2);
 $pos = strpos($partUrl[1], "/");
-$url = new moodle_url(substr($partUrl[1], $pos), array('id'=>$id));
+$urlparams = ['id' => $id];
+$url = new moodle_url(
+	substr($partUrl[1], $pos),
+    $urlparams
+);
 $PAGE->set_url($url);
 $PAGE->requires->js('/mod/exagames/js/swfobject.js', true);
+
+switch ($game->gametype) {
+    case 'braingame':
+		// Add CSS
+        $PAGE->requires->css('/mod/exagames/html5/braingame/braingame.css');
+		// Add JS
+        $PAGE->requires->js('/mod/exagames/html5/js/jquery.min.js', true);
+        $PAGE->requires->js('/mod/exagames/html5/js/phaser.js', true);
+        $PAGE->requires->js('/mod/exagames/html5/braingame/js/braingame.js', true);
+}
+
+
 
 $stringman = get_string_manager();
 $strings = $stringman->load_component_strings('mod_exagames', 'en');
 $PAGE->requires->strings_for_js(array_keys($strings), 'mod_exagames');
 
 echo $OUTPUT->header();
+
+// Sometimes there is a problems if the user has disabled caching.
+// Here is a trying to solve this situation - preload images before the game will ask them:
+// Also with this solution we can get files from File storage if we will need
+if ($game->gametype == 'braingame') {
+    $preloadedimages = [
+        'baseBackground.png',
+        'stairway_basic.png',
+        'cloud_base.png',
+        'brain_table_basic.png',
+        'brain.png',
+        'einstein_thumbs-up.png',
+        'lamp.png',
+        'clipboard.png',
+        'crow.png',
+        'sky3.png',
+        'startScreen.png',
+        'water.png',
+        'brain_indicator.png',
+        'einstein-flying.png',
+        'einstein_smirk.png',
+        'einstein_mad.png',
+        'stairway_destroyed.png',
+        'einstein_splash.png',
+    ];
+    echo '<div style="display: none;">';
+    foreach ($preloadedimages as $imgname) {
+        echo '<img
+            id = "preloaded_'.$imgname.'"
+            src="' . $CFG->wwwroot . '/mod/exagames/html5/braingame/assets/brain/' . $imgname . '">';
+    }
+    echo '</div>';
+}
 
 //$context = get_context_instance(CONTEXT_COURSE, $game->course);
 $context = context_module::instance($cm->id);
@@ -474,12 +544,14 @@ $myBestScore = get_field_sql("SELECT MAX(score) AS score FROM {$CFG->prefix}exag
 */
 exagames_print_tabs($game, 'show');
 
-/// Print the main part of the page
-
+// Print the main part of the page
 if ($game->gametype != 'gamelabs') {
 	$partUrl = explode("/", $_SERVER['PHP_SELF'], 2);
 	$pos = strpos($partUrl[1], "/");
-	$url = new moodle_url(substr($partUrl[1], $pos), array('id'=>$id));
+	$url = new moodle_url(
+			substr($partUrl[1], $pos), 
+			['id'=>$id]
+	);
 	$flashvars = array(
 		'gameurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$id,
 		'gamedataurl' => $CFG->wwwroot.'/mod/exagames/view.php?id='.$cm->id.'&action=data&rand='.time(),
@@ -488,23 +560,58 @@ if ($game->gametype != 'gamelabs') {
 	);
 	$gametype = $game->gametype;
 
+    //
+	if (!$quiz->questions || !count($quiz->questions)) {
+        echo \html_writer::div(get_string('brain_noquestions', 'mod_exagames'), 'alert alert-danger');
+	} else {
+
+		// scripts / CSS / fonts preloader
 ?>
 
- <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>-->
+		<style>
+
+            /* font files from own moodle server */
+            /* latin-ext */
+            @font-face {
+                font-family: 'Luckiest Guy';
+                font-style: normal;
+                font-weight: 400;
+                src: url('fonts/LuckiestGuy-Regular.woff2') format('woff2');
+                unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+            }
+            /*!* latin *!*/
+            @font-face {
+                font-family: 'Luckiest Guy';
+                font-style: normal;
+                font-weight: 400;
+                src: url('fonts/LuckiestGuy-Regular.woff2') format('woff2');
+                unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+            }
+
+		</style>
+
  <script src="html5/js/jquery.min.js"></script>
+<!-- <script src="html5/js/phaser.min.js"></script>-->
  <script src="html5/js/phaser.js"></script>
 
 <script type="text/javascript">
 	var flashvars = <?php echo json_encode($flashvars) ?>;
 	var gameType = <?php echo json_encode($gametype) ?>;
 	//var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
+	const EVALUATION_DISPLAY_DURATION = <?php echo @$CFG->exagames_braingamedurationtime ?: 4000 ?>;
 	var params = {};
 	var attributes = {};
 	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
 	if (gameType == 'braingame') {
 		$(document).ready(function(){
 				$( "#GameContent" ).empty();
-				$( "#GameContent" ).load('./html5/braingame/braingame.html');
+				$( "#GameContent" ).load('./html5/braingame/braingame.html'/*, function (response, status, xhr) {
+                    if (status === "success") {
+                        console.log("Game    loaded successfully!");
+                    } else if (status === "error") {
+                        console.error("Error loading content:", xhr.status, xhr.statusText);
+                    }
+                }*/);
 		});
 	} else if (gameType == 'tiles') {
 		$(document).ready(function(){
@@ -513,8 +620,16 @@ if ($game->gametype != 'gamelabs') {
 		});
 	}
 
+    $(document).ready(function(){
+        if (typeof loadGameQuestions === 'function') {
+            loadGameQuestions("<?php echo $flashvars['gamedataurl']; ?>");
+            // gameInit(); // look inside loadGameQuestions()
+        }
+    });
+
 	</script>
 <div id="Game" style="width: 1200px; margin: 0 auto;">
+	<div style="visibility:hidden; font-family: 'Luckiest Guy';">Hack for preload font</div>
 	<div id="GameContent" style="width: 1200px; margin: 0 auto;">
 		<a href="http://www.adobe.com/go/getflashplayer" style="display: block; padding: 40px; text-align: center;">
 			<img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" />
@@ -523,6 +638,7 @@ if ($game->gametype != 'gamelabs') {
 </div>
 
 <?php
+    }
 }
 // Gameslab.at Frame einbinden
 else {

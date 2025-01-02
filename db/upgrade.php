@@ -140,6 +140,22 @@ function xmldb_exagames_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2024122604, 'exagames');
     }
 
+    if ($oldversion < 2025010201) {
+
+        // Define more fields to use for question settings
+        $table = new xmldb_table('exagames');
+        $field = new xmldb_field('randomizequestions', XMLDB_TYPE_INTEGER, 11, null, null, null, -1);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('randomizeanswers', XMLDB_TYPE_INTEGER, 11, null, null, null, -1);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Exagames savepoint reached.
+        upgrade_mod_savepoint(true, 2025010201, 'exagames');
+    }
 
     return $result;
 }
