@@ -157,6 +157,27 @@ function xmldb_exagames_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2025010201, 'exagames');
     }
 
+    if ($oldversion < 2025012200) {
+
+        // Define more fields to use for question settings
+        $table = new xmldb_table('exagames');
+        $field = new xmldb_field('toplistlimit', XMLDB_TYPE_INTEGER, 11, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('timer', XMLDB_TYPE_INTEGER, 2, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, 11, null, null, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Exagames savepoint reached.
+        upgrade_mod_savepoint(true, 2025012200, 'exagames');
+    }
+
     return $result;
 }
 

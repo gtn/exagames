@@ -595,10 +595,14 @@ if ($game->gametype != 'gamelabs') {
  <script src="html5/js/phaser.js"></script>
 
 <script type="text/javascript">
+	var urlToCourse = "<?php $tempUrl = new moodle_url('/course/view.php', ['id' => $game->course]); echo $tempUrl->out(); ?>";
+    var urlToRestart = "<?php $tempUrl = new moodle_url('/mod/exagames/view.php', ['id' => $id]); echo $tempUrl->out(); ?>";
 	var flashvars = <?php echo json_encode($flashvars) ?>;
 	var gameType = <?php echo json_encode($gametype) ?>;
 	//var flashvars = <?php echo json_encode(array_map('urlencode', $flashvars)) ?>;
 	const EVALUATION_DISPLAY_DURATION = <?php echo @$CFG->exagames_braingamedurationtime ?: 4000 ?>;
+	const BRAINGAME_TIMER_TYPE = <?php echo @$game->timer ?: 0 ?>;
+	const BRAINGAME_TIMER_DURATION = <?php echo ((@$game->duration ?: 0) * 1000) /* in milliseconds */ ?>;
 	var params = {};
 	var attributes = {};
 	//swfobject.embedSWF(<?php echo json_encode($game->swf); ?>, "GameContent", <?php echo $game->width; ?>, <?php echo $game->height; ?>, "9.0.0", false, flashvars, params, attributes);
@@ -667,7 +671,7 @@ echo '
 </iframe>';
 }
 
-// 5 TOP scores.
+// TOP scores.
 $showtopscores = $game->showtopresults;
 $showtop = false;
 switch ($showtopscores) {
@@ -726,6 +730,16 @@ switch ($showtopscores) {
 
 if ($showtop) {
 
+	$limit = @$CFG->exagames_topscoreslimit;
+	// overwrite from gae settings
+	if (@$game->toplistlimit) {
+        $limit = $game->toplistlimit;
+	}
+	// default limit
+	if (!$limit) {
+        $limit = 5;
+	}
+
 	// Note: only the same gametype
     $whereforusers = '';
 	if ($userids) {
@@ -742,7 +756,7 @@ if ($showtop) {
             '.$whereforusers.'
         GROUP BY s.userid, u.firstname, u.lastname 
         ORDER BY score DESC, time ASC 
-        LIMIT 0, 5 ';
+        LIMIT 0, '.$limit;
     $results = $DB->get_records_sql($sql);
 
 	if ($results) {
@@ -764,13 +778,8 @@ if ($showtop) {
 				}
             }
 
-            if ($game->securenames) {
-				// Use first lettaer of the fisrt name and random '*' strings
-                $fullname = substr($user->firstname, 0, 1) . str_repeat('*', rand(4, 7)) . ' ' . str_repeat('*', rand(4, 9));
-			} else {
-				// Use real names
-                $fullname = $user->firstname . ' ' . $user->lastname;
-            }
+            $fullname = exagames_secure_user_name($user->firstname, $user->lastname, (@$game->securenames ?: 0));
+
             $table->data[] = [
                 $fullname,
                 $user->score,

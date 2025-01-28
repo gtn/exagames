@@ -106,13 +106,17 @@ $string['showtopresults.header'] = '5 Top Scores:';
 $string['showtopresults.settingsHeader'] = 'Show top results';
 $string['showtopresults.settingsHeader_help'] = 'Here you can select options for showing of top scores';
 $string['showtopresults.select'] = 'Show from';
-$string['showtopresults.select_help'] = '**Default** Do not show at all
+$string['showtopresults.select_help'] = '**Do not show** The results will not be shown at all
 
-**From all own groups** Will show the top scores from all groups the user belongs
+**From all players** Will be shown the top scores from all players who have done this game
 
-**From selected group** Will show the top scores from the selected group
+**From all player cohorts** Will be shown the top scores from all cohorts the player belongs
 
-**From all users** Will show the top scores from all users who have done this game';
+**From selected cohort** Will be shown the top scores from the selected cohort
+
+**From all player groups** Will be shown the top scores from all groups the player belongs
+
+**From selected group** Will be shown the top scores from the selected group';
 $string['showtopresults.selectCohort'] = 'Choose the group';
 $string['showtopresults.selectCohort_help'] = '';
 $string['showtopresults.selectGroup'] = 'Choose the group';
@@ -129,7 +133,13 @@ $string['showtopresults.noanygroup'] = 'You have no any group';
 
 // Hide from results
 $string['showtopresults.hideUserName'] = 'Hide names';
-$string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, like: N*** *****';
+$string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, for example: N*** *****';
+$string['showtopresults.hideUserName.item.0'] = 'Show full name (John Doe)';
+$string['showtopresults.hideUserName.item.1'] = 'Show only first name (John)';
+$string['showtopresults.hideUserName.item.2'] = 'Mask the last name (John D***)';
+$string['showtopresults.hideUserName.item.3'] = 'Mask first and last names (J*** D***)';
+
+
 $string['showtopresults.hideTeachers'] = 'Hide teacher results';
 $string['showtopresults.hideTeachers_help'] = 'Do not show results of users with \'teacher\' role';
 
@@ -140,6 +150,14 @@ $string['modsettings.gameparams.randomizequestions'] = 'Randomize questions';
 $string['modsettings.gameparams.randomizequestions_description'] = 'Questions in the game will be randomized by default. Every game has own parameter to change this behavior';
 $string['modsettings.gameparams.randomizeanswers'] = 'Randomize answers';
 $string['modsettings.gameparams.randomizeanswers_description'] = 'Answers in the game questions will be randomized by default. Every game has own parameter to change this behavior';
+
+// Top scores params
+$string['modsettings.topscoresparams.header'] = 'Top scores options';
+$string['modsettings.topscoresparams.header_help'] = '';
+$string['modsettings.topscoresparams.limit'] = 'Limit to show';
+$string['modsettings.topscoresparams.limit_description'] = '';
+
+// Braingame settings
 $string['modsettings.braingameparams.header'] = 'Braingame';
 $string['modsettings.braingameparams.header_help'] = 'Options for games with "Braingame" type ';
 $string['modsettings.braingameparams.durationtime'] = 'Duration time (ms)';
@@ -173,3 +191,16 @@ $string['questionsettingshdr.randomizeanswers.select_help'] = 'Do you need to ra
 $string['optionsList.asDefault'] = 'As the default value in module settings';
 $string['optionsList.disable'] = 'Disable';
 $string['optionsList.enable'] = 'Enable';
+
+$string['exagamestoplistlimit'] = 'Limit of shown scores';
+$string['exagamestoplistlimit_help'] = 'Which limit of shown records in the Top scores list (0 - to use default limit from module settings)';
+
+$string['timer.settingsHeader'] = 'Game timers';
+$string['timer.settingsHeader_help'] = '';
+$string['timer.type'] = 'Used timer type';
+$string['timer.type_help'] = '';
+$string['timer.type.item.0'] = 'Do not use the timer';
+$string['timer.type.item.1'] = 'Timer for every question';
+$string['timer.type.item.2'] = 'Timer for whole game';
+$string['timer.duration'] = 'Duration (in seconds)';
+$string['timer.duration_help'] = '';

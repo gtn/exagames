@@ -28,11 +28,48 @@ input {
 #startGame {
 	width:95px;
 	height:49px;
-	    margin-top: 45%;
+	margin-top: 45%;
     margin-left: 70%;
 }
 
 #startGame:hover {
+	transform:scale(1.1);
+	cursor:pointer;
+}
+
+#restartGame {
+	position: absolute;
+	background-image: url('assets/brain/restartButton.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	width: 125px;
+	height: 35px;
+	margin-top: 60%;
+	margin-left: 75%;
+}
+
+#backToCourse {
+	position: absolute;
+	background-image: url('assets/brain/backToCourseButton.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	width: 125px;
+	height: 70px;
+	margin-top: 57%;
+	margin-left: 10%;
+}
+
+#restartGame.withBackground, #backToCourse.withBackground {
+	/*background-color: #ffffff55;*/
+	/*border-radius: 5px;*/
+	/*padding: 20px;*/
+	/*vertical-align: middle;*/
+	/*padding-top: 70px;*/
+	/*display: table-cell;*/
+	/*background-position: center;*/
+}
+
+#restartGame:hover, #backToCourse:hover {
 	transform:scale(1.1);
 	cursor:pointer;
 }
@@ -45,7 +82,7 @@ input {
 	overflow-y: scroll;
 }
 
-#loginButton {
+#loginButton, #answerButton {
 	float:right;
 }
 

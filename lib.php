@@ -339,8 +339,8 @@ function exagames_load_quiz($quizid) {
                         SELECT MAX(qv_inner.id)
                             FROM {$CFG->prefix}question_versions AS qv_inner
                             WHERE qv_inner.questionbankentryid = qv.questionbankentryid
-                                AND qv_inner.status = 'ready'
-                    );
+                    )
+                    AND qv.status = 'ready';
     ", [$quizid]);
 
     if ($questions == null) {
@@ -770,4 +770,39 @@ function exagames_randomize_options($withDefault = false) {
     $options[EXAGAMES_OPTION_ENABLED] = get_string('optionsList.enable', 'exagames');
 
     return $options;
+}
+
+/**
+ * Different ways to secure user names, by $securetype:
+ * 0 - use as it is
+ * 1 - show only first name
+ * 2 - mask the last name
+ * 3 - mask first and last names
+ * @param $firstname
+ * @param $lastname
+ * @param $securetype
+ * @return void
+ */
+function exagames_secure_user_name($firstname, $lastname, $securetype = 0) {
+    $newname = '';
+    switch ($securetype) {
+        case 0:
+            // use as is it
+            $newname = $firstname . ' ' . $lastname;
+            break;
+        case 1:
+            // Only the first name
+            $newname = $firstname;
+            break;
+        case 2:
+            // mask the last name
+            $newname = $firstname . ' '. substr($lastname, 0, 1) . str_repeat('*', rand(4, 7));
+            break;
+        case 3:
+            // mask both
+            $newname = substr($firstname, 0, 1) . str_repeat('*', rand(4, 7)) . ' ' . substr($lastname, 0, 1) . str_repeat('*', rand(4, 7));
+            break;
+    }
+
+    return $newname;
 }

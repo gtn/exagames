@@ -69,11 +69,12 @@ class mod_exagames_mod_form extends moodleform_mod
         //$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
         //$exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
         if ($recs = $DB->get_records_sql("
-                SELECT ca.* 
+                SELECT ca.id, ca.name
                 FROM {$CFG->prefix}question_bank_entries as en 
                     INNER JOIN {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id 
-                GROUP BY en.questioncategoryid
-                ORDER BY ca.name")) {
+                GROUP BY ca.id, ca.name
+                ORDER BY ca.name
+                ")) {
 
             foreach ($recs as $key => $rec) {
 				/*$qTestRec = $DB->get_records_sql("
@@ -582,6 +583,9 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->addElement('header', 'showtopresultshdr',
             get_string('showtopresults.settingsHeader', 'exagames'));
         $mform->addHelpButton('showtopresultshdr', 'showtopresults.settingsHeader', 'exagames');
+		// Limit for top scores
+        $mform->addElement('text', 'toplistlimit', get_string('exagamestoplistlimit', 'exagames'), array('size' => '6'));
+        $mform->addHelpButton('toplistlimit', 'exagamestoplistlimit', 'exagames');
 
         // Get all cohorts
         require_once ($CFG->dirroot.'/cohort/lib.php');
@@ -640,7 +644,14 @@ class mod_exagames_mod_form extends moodleform_mod
 //        $mform->addRule('showtopresultscohort', get_string('required'), 'required', null, 'client');
 
 		// "Secure name" toggler
-        $mform->addElement('advcheckbox', 'securenames', get_string('showtopresults.hideUserName', 'exagames'));
+	    $securenamesVariants = [
+            '0' => get_string('showtopresults.hideUserName.item.0', 'exagames'),
+            '1' => get_string('showtopresults.hideUserName.item.1', 'exagames'),
+            '2' => get_string('showtopresults.hideUserName.item.2', 'exagames'),
+            '3' => get_string('showtopresults.hideUserName.item.3', 'exagames'),
+	    ];
+//        $mform->addElement('advcheckbox', 'securenames', get_string('showtopresults.hideUserName', 'exagames'));
+        $mform->addElement('select', 'securenames', get_string('showtopresults.hideUserName', 'exagames'), $securenamesVariants);
         $mform->addHelpButton('securenames', 'showtopresults.hideUserName', 'exagames');
 		$mform->setDefault('securenames', 0);
         $mform->hideIf('securenames', 'showtopresults', 'eq', 'none');
@@ -650,6 +661,33 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->addHelpButton('hideteachers', 'showtopresults.hideTeachers', 'exagames');
         $mform->setDefault('hideteachers', 0);
         $mform->hideIf('hideteachers', 'showtopresults', 'eq', 'none');
+
+		// TIMERS
+        $mform->addElement('header', 'timerhdr', get_string('timer.settingsHeader', 'exagames'));
+		if (get_string('timer.settingsHeader_help', 'exagames')) {
+			$mform->addHelpButton('timerhdr', 'timer.settingsHeader', 'exagames');
+        }
+//        $mform->hideIf('timerhdr', 'gametype', 'neq', 'braingame');
+        $timersVariants = [
+            '0' => get_string('timer.type.item.0', 'exagames'),
+            '1' => get_string('timer.type.item.1', 'exagames'),
+            '2' => get_string('timer.type.item.2', 'exagames'),
+        ];
+        $mform->addElement('select', 'timer', get_string('timer.type', 'exagames'), $timersVariants);
+        if (get_string('timer.type_help', 'exagames')) {
+            $mform->addHelpButton('timer', 'timer.type', 'exagames');
+        }
+        $mform->setDefault('timer', 0);
+        $mform->hideIf('timer', 'gametype', 'neq', 'braingame');
+        $mform->addElement('text', 'duration', get_string('timer.duration', 'exagames'), array('size' => '6'));
+        if (get_string('timer.duration_help', 'exagames')) {
+            $mform->addHelpButton('duration', 'timer.duration', 'exagames');
+        }
+        $mform->hideIf('duration', 'gametype', 'neq', 'braingame');
+        $mform->hideIf('duration', 'timer', 'eq', '0');
+
+        $mform->addElement('static', 'nosettings', 'No options for the "Exaclick" game type');
+        $mform->hideIf('nosettings', 'gametype', 'neq', 'tiles');
 
 		//-------------------------------------------------------------------------------
         // add standard elements, common to all modules

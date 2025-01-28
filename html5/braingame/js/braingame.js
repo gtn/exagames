@@ -11,6 +11,10 @@ var sceneObj;
 var cur_brain_width;
 var cur_brain_height;
 var game_physics;
+var timerLabel;
+const scoreLabelFillColor = '#ffb600';
+const scoreLabelStrokeColor = '#000000';
+const timerLabelBlinkingFillColor = '#ff0000';
 
 var animConfig = {
     type: Phaser.CANVAS,
@@ -26,7 +30,8 @@ var animConfig = {
     scene: {
         preload: preload,
         create: create,
-        update: update
+        update: update,
+        countdown: false
     }
 };
 
@@ -34,13 +39,15 @@ function gameInit() {
     var brainCanvas = new Phaser.Game(animConfig);
     brainCanvas.scene.disableVisibilityChange = true;
 
-    $('#html-container').append('<div id="startGame" style="background-image:url(html5/braingame/assets/brain/playButton.png);"> </div>')
+    $('#html-container').append('<div id="startGame" style="background-image:url(html5/braingame/assets/brain/playButton.png);"> </div>');
     $('#startGame').on('click', function () {
         startingScreen.destroy();
         $('#startGame').remove();
         $('#question-field').css('display', '');
         $(sceneObj).trigger('startGame');
         questionUpdate();
+        timerLabel.setVisible(true); // show the timer
+        sceneObj.countdown.start(manageCountdownEnded.bind(this), BRAINGAME_TIMER_DURATION);
     });
 }
 
@@ -54,7 +61,7 @@ function gameInit() {
 
 function preload() {
     
-    console.log('Assets loading');
+    // console.log('Assets loading');
 
     var loader = this.load;
 
@@ -241,6 +248,8 @@ function update() {
         brain_shrinking = true;
     }
 
+    sceneObj.countdown.update();
+
 }
 
 /*function brainAnimation(brain) {
@@ -345,6 +354,7 @@ function create() {
     var animator = new Animator();
 
     sceneObj = this;
+
     game_physics = this.physics;
     this.add.image(401, 300, 'baseBackground');
     einstein_sinking = sceneObj.physics.add.sprite(300, -300, 'einstein_sinking');
@@ -490,6 +500,10 @@ function create() {
     });
 
     $(sceneObj).on('endingAnimation', function () {
+
+        // hide timer
+        sceneObj.countdown.hide();
+
         clipboard.destroy();
         crow.body.velocity.set(-600, 70);
         animator.once(function () {
@@ -574,6 +588,7 @@ function create() {
         animator.once(function () {
             isEinsteinSinking = false;
             showScore(score);
+            addRestartButtons();
         }, 5000, false);
 
         /*	setTimeout(function() {
@@ -608,14 +623,21 @@ function create() {
              lamp.displayWidth += riseByWidth * perc;
          },  6490*score, 0, null);*/
 
+        var inSkyPause = 6100 * score;
 
         setTimeout(function () {
             isSkyCameraRoll = false;
             einstein_flying.anims.play('einstein-in-sky', true);
             einstein_sky_floating = true;
-            einstein_flying.body.velocity.set(1, 3);
+            einstein_flying.body.velocity.set(1, 15);
             showScore(score);
-        }, 6100 * score);
+            addRestartButtons();
+        }, inSkyPause);
+
+/*        setTimeout(function () {
+            addRestartButtons();
+        }, inSkyPause + 500);*/
+
     }
 
     var transCnt = 0;
@@ -636,6 +658,22 @@ function create() {
              }, 50);
         }, 1300);
       }*/
+
+    function addRestartButtons(withBackground = false) {
+        var buttonClass = '';
+        if (withBackground) {
+            buttonClass = 'withBackground';
+        }
+        if (!$('#restartGame').length) {
+            $('#contentContainer').css('pointer-events', 'auto'); // also needed form some cases
+            $('#question-field').remove(); // sometimes this element bothers
+            // sometimes regular events are not working. so add them here
+            var backToCourseButton = $('<div id="backToCourse" class="'+buttonClass+'"> </div>').on('click', function() {document.location = urlToCourse;});
+            $('#html-container').append(backToCourseButton);
+            var restartButton = $('<div id="restartGame" class="'+buttonClass+'"> </div>').on('click', function() {document.location = urlToRestart;});
+            $('#html-container').append(restartButton);
+        }
+    }
 
 
     function wrongAnimation() {
@@ -704,7 +742,46 @@ function create() {
     requestAnimationFrame(animator.update);
     startingScreen = this.add.image(401, 300, 'startingScreen');
     $('#question-field').css('display', 'none');
+    switch (BRAINGAME_TIMER_TYPE) {
+        case 1:
+            // questionnaire timer
+            timerLabel = sceneObj.add.text(80, sceneObj.cameras.main.worldView.height - 80, formatDuration(BRAINGAME_TIMER_DURATION), {
+                fontSize: "24px",
+                fontFamily: "Luckiest Guy",
+                fontWeight: "normal",
+                fontStyle: "normal",
+                fill: scoreLabelFillColor,
+                // next code needed to fix doubled text with a regular font (not stable)
+                stroke: scoreLabelStrokeColor,
+                strokeThickness: 0
+            });
+            break;
+        case 2:
+            // global timer
+            timerLabel = sceneObj.add.text(sceneObj.cameras.main.worldView.width - 120, sceneObj.cameras.main.worldView.y + 20, formatDuration(BRAINGAME_TIMER_DURATION), {
+                fontSize: "36px",
+                fontFamily: "Luckiest Guy",
+                fontWeight: "normal",
+                fontStyle: "normal",
+                fill: scoreLabelFillColor,
+                // next code needed to fix doubled text with a regular font (not stable)
+                stroke: scoreLabelStrokeColor,
+                strokeThickness: 0
+            });
+            break;
+        case 0:
+        default:
+            // no timer. just empty text to ignore possible JS errors
+            timerLabel = sceneObj.add.text(sceneObj.cameras.main.worldView.width - 120, sceneObj.cameras.main.worldView.y + 20, formatDuration(BRAINGAME_TIMER_DURATION), {
+                fontSize: "36px",
+                fontFamily: "Luckiest Guy",
+                fontWeight: "normal",
+                alpha: 0
+            });
 
+    }
+    timerLabel.setVisible(false); // hide it by default
+    this.countdown = new CountdownController(sceneObj, timerLabel)
 
 }
 
@@ -714,9 +791,9 @@ function showScore(mdl_score) {
         fontFamily: "Luckiest Guy",
         fontWeight: "400",
         fontStyle: "normal",
-        fill: "#ffb600",
+        fill: scoreLabelFillColor,
         // next code needed to fix doubled text with a regular font (not stable)
-        stroke: "#000000",
+        stroke: scoreLabelStrokeColor,
         strokeThickness: 0
         // stroke: '#fff',
         // strokeThickness: 4
@@ -821,6 +898,16 @@ $(document).ajaxStop(function (e) {
 
 });
 
+$(document).ready(function() {
+    $('body').on('click', '#restartGame', function(e) {
+        e.preventDefault();
+        document.location = urlToRestart;
+    });
+    $('body').on('click', '#backToCourse', function(e) {
+        e.preventDefault();
+        document.location = urlToCourse;
+    });
+})
 
 // const EVALUATION_DISPLAY_DURATION = 4000;
 
@@ -897,107 +984,140 @@ function questionUpdate() {
         }
         domAppend += '</div>';
         $('#question-field').append(domAppend);
-        $('#question-field').append('<button id="loginButton" class="btn btn-dark">' + M.util.get_string('brain_continue', 'mod_exagames') + '</button>');
-        $('#loginButton').click(function (e) {
+        $('#question-field').append('<button id="answerButton" class="btn btn-dark">' + M.util.get_string('brain_continue', 'mod_exagames') + '</button>');
+        $('#answerButton').click(function (e) {
             handleAnswer(e, "multiple-choice");
         });
     }
     document.getElementById('question-field').scrollTop = 0;
 }
 
-function handleAnswer(e, type) {
+function handleAnswer(e, type, forceScore = -1) {
     $('#contentContainer').css('pointer-events', 'none');
     if (type === 'single-choice') {
-        singleAlternativeHandler(e, e.currentTarget.id.substr(e.currentTarget.id.length - 1));
+        var answerId = null;
+        if (e != null) {
+            var answerId = e.currentTarget.id.substr(e.currentTarget.id.length - 1);
+        }
+        singleAlternativeHandler(e, answerId, forceScore);
     } else if (type === 'multiple-choice') {
-        multipleAlternativesHandler(e);
+        multipleAlternativesHandler(e, forceScore);
     }
 }
 
-function singleAlternativeHandler(e, answerId) {
-    let answText = $(e.currentTarget).text();
-    var curAnswerId = null;
-    for (let i = 0; i < questions[round].answers.length; i++) {
-        if (questions[round].answers[i].text == answText) {
-            curAnswerId = questions[round].answers[i].id;
-            break;
-        }
-    }
-
-    answers += "&responses[" + questions[round].id + "]=" + curAnswerId;
-    var liElem = $(e.currentTarget);
-    if (liElem.hasClass("alternative-correct")) {
-        liElem.find('.correct-image').css('background-image', 'url(html5/braingame/assets/checked.png)');
-        $(sceneObj).trigger('growBrainEvent');
-        var tScore = (1 / questions.length) * questions[round].answers[answerId].fraction;
-        score += tScore;
-    } else {
-        liElem.find('.wrong-image').css('background-image', 'url(html5/braingame/assets/cancel.png)');
-        $(sceneObj).trigger('wrongEvent');
-    }
-
-    selectedAlternativeAnimation();
-    round++;
-
-    if (round == questions.length)
-        storeResultScore(function () {
-            $('#question-field').empty();
-            $(sceneObj).trigger('endingAnimation');
-        });
-
-    setTimeout(function () {
-        questionUpdate();
-        $(sceneObj).trigger('reset');
-
-    }, EVALUATION_DISPLAY_DURATION);
-
-}
-
-function multipleAlternativesHandler(e) {
-    var checkedBoxes = getCheckedBoxes();
-    var tempScore = 0;
-    var curAnswerIds = "";
-    var parser = new DOMParser;
-    var maxScoreForQuestion = 0;
-    for (let i = 0; i < questions[round].answers.length; i++) {
-        let frac = Number(questions[round].answers[i].fraction);
-        if (frac > 0.0) {
-            maxScoreForQuestion += Number(questions[round].answers[i].fraction);
-        }
-    }
-    // console.log('maxScoreForQuestion = ' + maxScoreForQuestion);
-    var wrongDecreaser = maxScoreForQuestion / checkedBoxes.length;
-    for (let i = 0; i < checkedBoxes.length; i++) {
-        var box = checkedBoxes[i];
-        if (box.wasChecked) {
-            let answText = box.node[0].textContent;
+function singleAlternativeHandler(e, answerId, forceScore = -1) {
+    if (forceScore == -1) {
+        if (e !== null) {
+            sceneObj.countdown.stop();
+            sceneObj.countdown.stopBlinking();
+            // real answer
+            let answText = $(e.currentTarget).text();
+            var curAnswerId = null;
             for (let i = 0; i < questions[round].answers.length; i++) {
-                if (parser.parseFromString(questions[round].answers[i].text, 'text/html').body.textContent == answText) {
-                    if (curAnswerIds != "") {
-                        curAnswerIds += ",";
-                    }
-                    curAnswerIds += questions[round].answers[i].id;
+                if (questions[round].answers[i].text == answText) {
+                    curAnswerId = questions[round].answers[i].id;
                     break;
                 }
             }
 
-            var file;
-            // console.log('fraction val =' + questions[round].answers[i].fraction);
-            if (questions[round].answers[i].fraction > 0) {
-                // it is correct (partially or fully) answer
-                tempScore += Number(questions[round].answers[i].fraction) / maxScoreForQuestion;
+            answers += "&responses[" + questions[round].id + "]=" + curAnswerId;
+            var liElem = $(e.currentTarget);
+            if (liElem.hasClass("alternative-correct")) {
+                liElem.find('.correct-image').css('background-image', 'url(html5/braingame/assets/checked.png)');
+                $(sceneObj).trigger('growBrainEvent');
+                var tScore = (1 / questions.length) * questions[round].answers[answerId].fraction;
+                score += tScore;
             } else {
-                // it is wrong answer - decrease the score
-                tempScore -= wrongDecreaser;
+                liElem.find('.wrong-image').css('background-image', 'url(html5/braingame/assets/cancel.png)');
+                $(sceneObj).trigger('wrongEvent');
             }
 
-            if (box.alternativeState == true) {
-                file = "checked.png"
-            } else {
-                file = "cancel.png";
-            }
-            $('#' + box.node[0].id).find('div').css('background-image', 'url(/mod/exagames/html5/braingame/assets/' + file + ')');
+        } else {
+            // triggered by ended timer
+            score += 0;
         }
+        selectedAlternativeAnimation();
+
+    } else {
+        // use fixed score value
+        score += forceScore;
+    }
+
+    round++;
+
+    if (round == questions.length) {
+        // stop the timer
+        sceneObj.countdown.stop();
+        // send result to the server
+        storeResultScore(function () {
+            $('#question-field').empty();
+            $(sceneObj).trigger('endingAnimation');
+        });
+    }
+
+    if (forceScore == -1) {
+        setTimeout(function () {
+            questionUpdate();
+            $(sceneObj).trigger('reset');
+            sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+        }, EVALUATION_DISPLAY_DURATION);
+    }
+
+}
+
+
+function multipleAlternativesHandler(e, forceScore = -1) {
+    var tempScore = 0;
+    if (forceScore == -1) {
+        sceneObj.countdown.stop();
+        sceneObj.countdown.stopBlinking();
+        var checkedBoxes = getCheckedBoxes();
+        var curAnswerIds = "";
+        var parser = new DOMParser;
+        var maxScoreForQuestion = 0;
+        for (let i = 0; i < questions[round].answers.length; i++) {
+            let frac = Number(questions[round].answers[i].fraction);
+            if (frac > 0.0) {
+                maxScoreForQuestion += Number(questions[round].answers[i].fraction);
+            }
+        }
+        // console.log('maxScoreForQuestion = ' + maxScoreForQuestion);
+        var wrongDecreaser = maxScoreForQuestion / checkedBoxes.length;
+        for (let i = 0; i < checkedBoxes.length; i++) {
+            var box = checkedBoxes[i];
+            if (box.wasChecked) {
+                let answText = box.node[0].textContent;
+                for (let i = 0; i < questions[round].answers.length; i++) {
+                    if (parser.parseFromString(questions[round].answers[i].text, 'text/html').body.textContent == answText) {
+                        if (curAnswerIds != "") {
+                            curAnswerIds += ",";
+                        }
+                        curAnswerIds += questions[round].answers[i].id;
+                        break;
+                    }
+                }
+
+                var file;
+                // console.log('fraction val =' + questions[round].answers[i].fraction);
+                if (questions[round].answers[i].fraction > 0) {
+                    // it is correct (partially or fully) answer
+                    tempScore += Number(questions[round].answers[i].fraction) / maxScoreForQuestion;
+                } else {
+                    // it is wrong answer - decrease the score
+                    tempScore -= wrongDecreaser;
+                }
+
+                if (box.alternativeState == true) {
+                    file = "checked.png"
+                } else {
+                    file = "cancel.png";
+                }
+                $('#' + box.node[0].id).find('div').css('background-image', 'url(/mod/exagames/html5/braingame/assets/' + file + ')');
+            }
+        }
+    } else {
+        // use needed answer value
+        tempScore = forceScore;
     }
     if (tempScore < 0) {
         tempScore = 0;
@@ -1013,17 +1133,22 @@ function multipleAlternativesHandler(e) {
     round++;
 
     if (round == questions.length) {
+        // stop the timer
+        sceneObj.countdown.stop();
+        // send result to the server
         storeResultScore(function () {
             $('#question-field').empty();
             $(sceneObj).trigger('endingAnimation');
         });
     }
 
-    setTimeout(function () {
-        questionUpdate();
-        $(sceneObj).trigger('reset');
-
-    }, EVALUATION_DISPLAY_DURATION);
+    if (forceScore == -1) {
+        setTimeout(function () {
+            questionUpdate();
+            $(sceneObj).trigger('reset');
+            sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+        }, EVALUATION_DISPLAY_DURATION);
+    }
 
 }
 
@@ -1049,8 +1174,9 @@ function selectedAlternativeAnimation() {
     var animWrongAlternatives = setInterval(function () {
         $('.alternative-wrong').css('margin-left', margin + 'px');
         margin += 2.5;
-        if (margin >= 35)
+        if (margin >= 35) {
             clearInterval(animWrongAlternatives);
+        }
     }, 40);
 
 }
@@ -1069,24 +1195,190 @@ function storeResultScore(callback) {
         url: (flashvars.gameurl + "&action=data&score=" + score.toFixed(2)),
         type: 'POST',
         error: function (xhr, status, error) {
-            // console.log(error);
             callback();
         },
         success: function (data) {
-            // console.log('score saved:');
-            // console.log(data);
             callback();
-            // console.log(sceneObj)
         }
     });
 }
 
-/*
-        function checkboxSettings() {
-            $(document).ready(function(){
-                $('.checkbox').click(function() {
-                    $('.checkbox').not(this).prop('checked', false);
-                });
+class CountdownController {
+    /** @type {Phaser.Scene} */
+    scene
+    /** @type {Phaser.GameObjects.Text} */
+    label
+    /** @type {Phaser.Time.TimerEvent} */
+    timerEvent
+    duration = 0
+    blinkTween
+    timerLabelBlinked
+
+    /**
+     *
+     * @param {Phaser.Scene} scene
+     * @param {Phaser.GameObjects.Text} label
+     */
+    constructor(scene, label)
+    {
+        this.scene = scene
+        this.label = label
+    }
+
+    /**
+     * @param {() => void} callback
+     * @param {number} duration
+     */
+    start(callback, duration = 45000)
+    {
+        this.stop()
+
+        this.finishedCallback = callback
+        this.duration = duration
+
+        // reset color
+        timerLabel.setFill(scoreLabelFillColor);
+        this.stopBlinking();
+
+        this.timerEvent = this.scene.time.addEvent({
+            delay: duration,
+            callback: () => {
+                this.label.text = '00:00'
+                this.stop()
+                if (callback) {
+                    callback()
+                }
+            }
+        })
+    }
+
+    stop()
+    {
+        if (this.timerEvent)
+        {
+            this.timerEvent.destroy()
+            this.timerEvent = undefined
+        }
+    }
+
+    hide() {
+        this.stopBlinking();
+        timerLabel.setAlpha(0);
+    }
+
+    update()
+    {
+        if (!this.timerEvent || this.duration <= 0)
+        {
+            return
+        }
+
+        const elapsed = this.timerEvent.getElapsed()
+        const remaining = this.duration - elapsed
+
+        var timetoblink = 15000;
+        if (BRAINGAME_TIMER_TYPE == 2) {
+            // global timer
+            timetoblink = 60000;
+        }
+
+        if (remaining < timetoblink) {
+            this.startBlinking();
+        }
+
+        this.label.text = formatDuration(remaining);
+    }
+
+    startBlinking()
+    {
+        if (!this.timerLabelBlinked) {
+            // BLINK it
+            this.timerLabelBlinked = true;
+            this.blinkTween = sceneObj.tweens.add({
+                targets: timerLabel,
+                alpha: 0, // Fade out completely
+                ease: 'Linear',
+                duration: 500, // Time it takes to fade out
+                yoyo: true, // Fade back in
+                repeat: -1 // Repeat indefinitely
+            });
+            // make it red!
+            timerLabel.setStyle({
+                fill: timerLabelBlinkingFillColor
             });
         }
-*/
+    }
+
+    stopBlinking()
+    {
+        if (this.timerLabelBlinked) {
+            this.timerLabelBlinked = false;
+            if (this.blinkTween) {
+                this.blinkTween.stop(); // Stop the tween
+                timerLabel.setAlpha(1); // Reset the text to full visibility
+            }
+        }
+    }
+
+}
+
+// milliseconds to human value!
+function formatDuration(ms) {
+    var minutes = Math.floor(ms / 60000);
+    var seconds = ((ms % 60000) / 1000).toFixed(0);
+    var resultStr = (
+        seconds == 60 ?
+        (minutes + 1) + ":00" :
+        (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" : "") + seconds
+    );
+    return resultStr;
+}
+
+// the timer ended!
+function manageCountdownEnded()
+{
+
+    switch (BRAINGAME_TIMER_TYPE) {
+        case 1:
+            // the timer is a question timer
+            actQuestion = questions[round];
+            if (typeof actQuestion !== 'undefined') {
+                if (actQuestion.type == 'multiple-choice-single-answer') {
+                    handleAnswer(null, "single-choice", -1);
+                } else if (actQuestion.type == 'multiple-choice-multiple-answer') {
+                    handleAnswer(null, "multiple-choice", -1);
+                }
+            }
+            break;
+        case 2:
+            // the timer is a global timer - end current question as a WRONG answer and calculate all other answers as wrong!
+            $('#question-field').empty();
+            while (round < questions.length) {
+                actQuestion = questions[round];
+                if (actQuestion.type == 'multiple-choice-single-answer') {
+                    handleAnswer(null, "single-choice", 0);
+                } else if (actQuestion.type == 'multiple-choice-multiple-answer') {
+                    handleAnswer(null, "multiple-choice", 0);
+                }
+                // round++; // it is increased later - in handleAnswer func
+            }
+            // Increase timer size by scaling - from right top corner
+            /*let scaleFactor = 1.5;
+            let rightTopX = timerLabel.x + timerLabel.width;
+            let rightTopY = timerLabel.y;
+            timerLabel.setScale(scaleFactor);
+            timerLabel.x = rightTopX - (timerLabel.width * scaleFactor);
+            timerLabel.y = rightTopY;*/
+            // "wrong event" event
+            $(sceneObj).trigger('wrongEvent');
+            var toReset = setInterval(function () {
+                $(sceneObj).trigger('reset');
+            }, 2000);
+            break;
+        case 0:
+        default:
+           // no timer
+    }
+
+    return ;
+}

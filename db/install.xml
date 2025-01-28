@@ -23,6 +23,9 @@
         <FIELD NAME="showtopresultscohort" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false" PREVIOUS="hideteachers" COMMENT="Selected cohort to show top scores "/>
         <FIELD NAME="randomizequestions" TYPE="int" LENGTH="11" NOTNULL="false" DEFAULT="-1" SEQUENCE="false" PREVIOUS="showtopresultscohort" COMMENT="For questions randomizing "/>
         <FIELD NAME="randomizeanswers" TYPE="int" LENGTH="11" NOTNULL="false" DEFAULT="-1" SEQUENCE="false" PREVIOUS="randomizequestions" COMMENT="For randomizing answers "/>
+        <FIELD NAME="toplistlimit" TYPE="int" LENGTH="11" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="randomizeanswers" COMMENT="Limit for top scores list "/>
+        <FIELD NAME="timer" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" PREVIOUS="securenames" COMMENT="Time od the used timer"/>
+        <FIELD NAME="duration" TYPE="int" LENGTH="11" NOTNULL="false" SEQUENCE="false" PREVIOUS="securenames" COMMENT="The duration for the timer"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
