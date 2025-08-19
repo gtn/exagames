@@ -359,12 +359,47 @@ function exagames_load_quiz($quizid) {
     $quizobj->load_questions();*/
     foreach ($questions as $questionRes)
 	{
+        // To fix PHP warnings (we use own properties and data, so we need to fix missing data)
+        // fake data in most cases
+        $questionRes->correctfeedback = '';
+        $questionRes->shuffleanswers = false;
+        $questionRes->answernumbering  = false;
+        $questionRes->showstandardinstruction  = false;
+        $questionRes->correctfeedbackformat = FORMAT_HTML;
+        $questionRes->partiallycorrectfeedback = '';
+        $questionRes->partiallycorrectfeedbackformat = FORMAT_HTML;
+        $questionRes->incorrectfeedback = '';
+        $questionRes->incorrectfeedbackformat = FORMAT_HTML;
+        $questionRes->shownumcorrect = false;
+        $questionRes->category = 0;
+        if ($questionRes->qtype == 'truefalse') {
+            $answerOptions = new \stdClass();
+            $answerOptions->id = 0;
+            $answerOptions->fraction = 1;
+            $answerOptions->feedback = '';
+            $answerOptions->feedbackformat = FORMAT_HTML;
+            $questionRes->answers = [
+                0 => $answerOptions
+            ];
+            $questionRes->trueanswer = 0;
+            $questionRes->falseanswer = 0;
+        } else {
+            $questionRes->answers = null;
+        }
+
+        $questionRes->options = clone $questionRes;
+
+        if (!isset($questionRes->contextid)) {
+            // add system context id
+            $context = context_system::instance();
+            @$questionRes->contextid = $context->id;
+        }
 
 		$question = question_bank::make_question($questionRes);
 //        $question = question_bank::get_qtype($questionRes->qtype, false)->make_question($questionRes, false);
 
         if (!isset($question->single)) {
-            $question->single = $questionRes->single; // Add manual 'single' marker.
+            @$question->single = $questionRes->single; // Add manual 'single' marker.
         }
 
         // only load multichoice and truefalse
@@ -377,20 +412,20 @@ function exagames_load_quiz($quizid) {
                 INNER JOIN {$CFG->prefix}question_answers as qaw on qu.id = qaw.question 
             WHERE qaw.question = ?
         ",[$question->id]);
-        $question->answers = $answers;
+        @$question->answers = $answers;
 
-        $question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
+        @$question->maxmark = @$question->maxmark ? $question->maxmark : $question->defaultmark;
 		$quiz->sumgrades += $question->maxmark;
 		$quiz->questions[$question->id] = $question;
 		
 		$questionExtraData = $DB->get_record('exagames_question', array('id'=>$question->id));
-		$question->tile_size = $questionExtraData ? $questionExtraData->tile_size : '';
-		$question->difficulty = $questionExtraData ? $questionExtraData->difficulty : '';
-		$question->content_url = $questionExtraData ? $questionExtraData->content_url : '';
-		$question->display_order = $questionExtraData ? $questionExtraData->display_order : '';
+		@$question->tile_size = $questionExtraData ? $questionExtraData->tile_size : '';
+		@$question->difficulty = $questionExtraData ? $questionExtraData->difficulty : '';
+		@$question->content_url = $questionExtraData ? $questionExtraData->content_url : '';
+		@$question->display_order = $questionExtraData ? $questionExtraData->display_order : '';
 
         if (!empty($question->answers) && @$question->shuffleanswers && !empty($question->shuffleanswers)) {
-            $question->answers = swapshuffle_assoc($question->answers);
+            @$question->answers = swapshuffle_assoc($question->answers);
         }
 	}
 	//echo "<pre>";

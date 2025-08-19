@@ -273,7 +273,6 @@ class mod_exagames_mod_form extends moodleform_mod
 
         //	$_SERVER['REQUEST_SCHEME'] . '//' . $_SERVER['SERVER_NAME']
 
-
         ?>
         <!--<script src="/mod/exagames/html5/js/jquery.min.js"></script>-->
         <script src="https://code.jquery.com/jquery-3.6.0.js"
@@ -585,6 +584,7 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->addHelpButton('showtopresultshdr', 'showtopresults.settingsHeader', 'exagames');
 		// Limit for top scores
         $mform->addElement('text', 'toplistlimit', get_string('exagamestoplistlimit', 'exagames'), array('size' => '6'));
+        $mform->setType('toplistlimit', PARAM_TEXT);
         $mform->addHelpButton('toplistlimit', 'exagamestoplistlimit', 'exagames');
 
         // Get all cohorts
@@ -680,6 +680,7 @@ class mod_exagames_mod_form extends moodleform_mod
         $mform->setDefault('timer', 0);
         $mform->hideIf('timer', 'gametype', 'neq', 'braingame');
         $mform->addElement('text', 'duration', get_string('timer.duration', 'exagames'), array('size' => '6'));
+        $mform->setType('duration', PARAM_INT);
         if (get_string('timer.duration_help', 'exagames')) {
             $mform->addHelpButton('duration', 'timer.duration', 'exagames');
         }
