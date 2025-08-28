@@ -204,3 +204,6 @@ $string['timer.type.item.1'] = 'Timer for every question';
 $string['timer.type.item.2'] = 'Timer for whole game';
 $string['timer.duration'] = 'Duration (in seconds)';
 $string['timer.duration_help'] = '';
+
+$string['question'] = 'question';
+$string['questions'] = 'questions';

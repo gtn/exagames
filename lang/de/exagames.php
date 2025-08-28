@@ -100,3 +100,5 @@ $string['easyDifficulty'] = 'Leicht';
 $string['interDifficulty'] = 'Mittel';
 $string['hardDifficulty'] = 'Schwer';
 
+$string['question'] = 'Frage';
+$string['questions'] = 'Fragen';

@@ -65,16 +65,18 @@ class mod_exagames_mod_form extends moodleform_mod
         // Quiz Dropdown
         $quizzes = array();
         $questionBankNames = array();
+        $questionBankCounts = array(); // If the first quiz contains a lot of the questions - the page is very very slow...
         $qtest = array();
         //$exagame = $DB->get_record('exagames', ['id'=>$PAGE->cm->instance]);
         //$exagame->quizid = optional_param('quizid', $exagame->quizid, PARAM_TEXT);
-        if ($recs = $DB->get_records_sql("
+	    $sqlQueizes = "
                 SELECT ca.id, ca.name
                 FROM {$CFG->prefix}question_bank_entries as en 
                     INNER JOIN {$CFG->prefix}question_categories as ca on en.questioncategoryid = ca.id 
                 GROUP BY ca.id, ca.name
                 ORDER BY ca.name
-                ")) {
+                ";
+        if ($recs = $DB->get_records_sql($sqlQueizes)) {
 
             foreach ($recs as $key => $rec) {
 				/*$qTestRec = $DB->get_records_sql("
@@ -83,7 +85,7 @@ class mod_exagames_mod_form extends moodleform_mod
                         INNER JOIN {$CFG->prefix}question as qu on qu.id = qv.questionid 
                     WHERE ba.questioncategoryid = ? AND qu.qtype IN ('".implode('\', \'', $allowedQuestionTypes)."')",
                     [intval($rec->id)]);*/
-                $qTestRec = $DB->get_records_sql("
+	            $sqlQuestions = "
 			        SELECT qu.* 
 			                FROM {$CFG->prefix}question_bank_entries as en
 			                    INNER JOIN {$CFG->prefix}question_versions as qv on en.id = qv.questionbankentryid
@@ -96,14 +98,22 @@ class mod_exagames_mod_form extends moodleform_mod
 			                            WHERE qv_inner.questionbankentryid = qv.questionbankentryid
 			                                AND qv_inner.status = 'ready'
 			                    );
-    			", [intval($rec->id)]);
+    			";
+
+                $qTestRec = $DB->get_records_sql($sqlQuestions, [intval($rec->id)]);
 
 	            // ignore empty quizzes (with no any suitable type questions)
 	            if (!$qTestRec || !count($qTestRec)) {
 					continue;
 	            }
                 $qtest[$key] = $qTestRec;
-                $quizzes[$rec->id] = $rec->name;
+
+                $quizNname = $rec->name;
+                // Add question's number into the quiz name
+                $qNumber = count($qtest[$key]);
+                $quizNname .= ' ('.$qNumber.' '.( $qNumber > 1 ? get_string('questions', 'exagames') : get_string('question', 'exagames')).')';
+
+                $quizzes[$rec->id] = $quizNname;
                 $qDetails = new stdClass();
                 $qNameArr = array();
                 foreach ($qtest[$key] as $q) {
@@ -130,9 +140,10 @@ class mod_exagames_mod_form extends moodleform_mod
                 }
                 $qObject = new stdClass();
                 $qObject->questionDetails = $qNameArr;
-                $qObject->quizName = $rec->name;
+                $qObject->quizName = $quizNname;
 
                 $questionBankNames[$rec->id] = $qObject;
+                $questionBankCounts[$rec->id] = $qNumber;
             }
 
         }
@@ -198,9 +209,20 @@ class mod_exagames_mod_form extends moodleform_mod
         if (!$selectedQuiz) {
             $selectedQuiz = isset($this->get_current()->quizid) ? $this->get_current()->quizid : 0;
         }
+        if (!$selectedQuiz) {
+            foreach ($quizzes as $id => $quiz) {
+				// If the quiz contains a lot of qustions - we have problems with page loading. Use limit 100 questions
+                if (isset($questionBankCounts[$id]) && $questionBankCounts[$id] <= 100) {
+                    $selectedQuiz = $id;
+                    break;
+                }
+            }
+        }
+		// all quizes contain more than 100 questions
 		if (!$selectedQuiz) {
             $selectedQuiz = array_key_first($quizzes);
         }
+
         $this->replaceQuizId = $selectedQuiz;
 
         $mform->addElement('select', 'quizid', get_string('modulename', 'quiz'), $quizzes, ['onChange' => 'handleQuizSelectParam();']);
@@ -268,11 +290,9 @@ class mod_exagames_mod_form extends moodleform_mod
             }
         }
 
-
         $url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
         //	$_SERVER['REQUEST_SCHEME'] . '//' . $_SERVER['SERVER_NAME']
-
         ?>
         <!--<script src="/mod/exagames/html5/js/jquery.min.js"></script>-->
         <script src="https://code.jquery.com/jquery-3.6.0.js"
