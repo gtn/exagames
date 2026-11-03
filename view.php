@@ -760,7 +760,12 @@ if ($showtop) {
     $results = $DB->get_records_sql($sql);
 
 	if ($results) {
-		echo html_writer::tag('h4', get_string('showtopresults.header', 'exagames'));
+        if($limit == 1) {
+            // use different language string for singular
+            echo html_writer::tag('h4', get_string('showtopresults.header_singular', 'exagames'));
+        } else {
+            echo html_writer::tag('h4', get_string('showtopresults.header', 'exagames', $limit));
+        }
 		$shownuserscounter = 0; // for limiting to 5 shown users. (not in SQL cause 'teacher' filtering)
 
         $table = new html_table();

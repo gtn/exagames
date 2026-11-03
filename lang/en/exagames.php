@@ -102,9 +102,10 @@ $string['interDifficulty'] = 'Medium';
 $string['hardDifficulty'] = 'Hard';
 
 // Show top results
-$string['showtopresults.header'] = '5 Top Scores:';
+$string['showtopresults.header'] = 'Top {$a} Scores:'; //add real number
+$string['showtopresults.header_singular'] = 'Top Score';
 $string['showtopresults.settingsHeader'] = 'Show top results';
-$string['showtopresults.settingsHeader_help'] = 'Here you can select options for showing of top scores';
+$string['showtopresults.settingsHeader_help'] = 'Here you can customize how top scores are displayed.';
 $string['showtopresults.select'] = 'Show from';
 $string['showtopresults.select_help'] = '**Do not show** The results will not be shown at all
 
@@ -133,7 +134,7 @@ $string['showtopresults.noanygroup'] = 'You have no any group';
 
 // Hide from results
 $string['showtopresults.hideUserName'] = 'Hide names';
-$string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, for example: N*** *****';
+$string['showtopresults.hideUserName_help'] = 'Hides user names by asterisks, for example: J*** *****';
 $string['showtopresults.hideUserName.item.0'] = 'Show full name (John Doe)';
 $string['showtopresults.hideUserName.item.1'] = 'Show only first name (John)';
 $string['showtopresults.hideUserName.item.2'] = 'Mask the last name (John D***)';
