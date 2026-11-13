@@ -91,8 +91,8 @@
 			} else {
 				showConfiguredStatus(0);
 			}
-
-			$(fp_ref).bind("DOMSubtreeModified", function() {
+			//DOMSubtreeModified is deprecated and no longer reliably supported by modern browsers.
+			/*$(fp_ref).bind("DOMSubtreeModified", function() {
 				// fmImagePath = window.parent.getFMImage(window.frameElement.id);
 				window.parent.getFMImage(window.frameElement.id).then(fmImagePath => {
 					// console.log('Image Path found:', fmImagePath);
@@ -105,7 +105,43 @@
 					fmImagePath = urlObj.toString();
 					loadFile(fmImagePath);
 				});
-			});
+			});*/
+			const frameId = window.frameElement.id;
+			const fileManager = window.parent
+					.jQuery('#' + frameId)
+					.closest('.felement')
+					.find('.filemanager')[0];
+
+			if (fileManager) {
+				let lastImageUrl = '';
+				const checkImage = function() {
+					window.parent.getFMImage(frameId).then(function(imageUrl) {
+						if (!imageUrl || imageUrl === lastImageUrl) {
+							return;
+						}
+
+						lastImageUrl = imageUrl;
+						console.log('EXAGAMES: New image found:', imageUrl);
+						const urlObj = new URL(imageUrl, window.parent.location.href);
+						urlObj.searchParams.delete('preview');
+						fmImagePath = urlObj.toString();
+						showConfiguredStatus(2);
+						loadFile(fmImagePath);
+					});
+				};
+
+				const observer = new MutationObserver(checkImage);
+				observer.observe(fileManager, {
+					childList: true,
+					subtree: true,
+					attributes: true,
+					attributeFilter: ['src']
+				});
+				// Also check for an image already present.
+				checkImage();
+			} else {
+				console.error('EXAGAMES: File Manager not found for', frameId);
+			}
 
 
 		});

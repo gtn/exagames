@@ -208,3 +208,12 @@ $string['timer.duration_help'] = '';
 
 $string['question'] = 'question';
 $string['questions'] = 'questions';
+
+
+//exaclick, blurrygame
+$string['click.lives'] = 'Lives: ';
+$string['click.time'] = 'Time: ';
+$string['click.score'] = 'You have reached {$a->score}% in {$a->timeScore} of {$a->totalTimeScore} time units!';
+$string['click.restart'] = 'Play again';
+$string['click.gameOver'] = 'Game Over! :(';
+$string['click.questionCounter'] = 'Question: {$a->current}/{$a->total}';

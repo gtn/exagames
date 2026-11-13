@@ -33,6 +33,7 @@
 			var ajaxCall = {
 					url: gamedataurl,
 					success: function(data, status, xhr) {
+						let imageRequests = [];
 						let questionNodes = data.getElementsByTagName('questions')[0].childNodes;
 						for(let i = 0; i < questionNodes.length; i++) {
 							let answers = [];
@@ -51,13 +52,13 @@
 
 								answers.push({
 									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 1:0,
-									text: "Wahr",
+									text: M.util.get_string('brain_istrue', 'mod_exagames'),
 									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? true:false,
 									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 1.0:0.0
 								},
 								{
 									id: questionNodes[i].getAttribute('correctanswer') == '1' ? 0:1,
-									text: "Falsch",
+									text: M.util.get_string('brain_isfalse', 'mod_exagames'),
 									isCorrect: questionNodes[i].getAttribute('correctanswer') == '1' ? false:true,
 									fraction: questionNodes[i].getAttribute('correctanswer') == '1' ? 0.0:1.0
 								});
@@ -66,6 +67,8 @@
                                     answers.sort(() => Math.random() - 0.5);
                                 }
 							}
+
+
 							let questionObj = {
 								answers: answers
 							};
@@ -82,7 +85,8 @@
 									type = 'multiple-choice-single-answer';
 									break;
 							}
-							$.ajax({
+							//track ajax requests
+							let request = $.ajax({
 								url: questionNodes[i].childNodes[1].childNodes[2].innerHTML,
 								type:'HEAD',
 								error: function() {
@@ -106,8 +110,32 @@
 									}
 								}
 							});
+							imageRequests.push(request);
 						}
 
+						//handle potential failures individually, so $when() does not reject as soon as any request fails
+						let completedRequests = imageRequests.map(function(request) {
+							return request.then(
+									function() {
+										return true;
+									},
+									function() {
+										return false;
+										console.log("ERROR: Image request failed");
+									}
+							);
+						});
+
+						//instead of ajaxStop(), executes the same code as before
+						$.when.apply($, completedRequests).done(function() {
+							if (questions.length === 0) {
+								alert("No questions configured yet!");
+								return;
+							}
+							imageAnimationSetup(function() {
+								$('#contentWrapper').show();
+							});
+						});
 					},
 					error: function(xhr, status, error) {
 						console.log("error");
@@ -115,19 +143,24 @@
 			};
 			$.ajax(ajaxCall);
 
-			//on finishing all ajax requests, loaded all available questions
-			$(document).ajaxStop(function() {
-				setTimeout(function() {
-					if (questions.length == 0) {
-						alert("No questions configured yet!");
-						return false;
-					}
-				}, 100);
-				imageAnimationSetup(function (){
-					$('#contentWrapper').show();
-				});
+			/* On Moodle 4.5 unrelated ajax requests fire ajaxStop() which lead to a wrong questionCnt in imageAnimationSetup()
+			 * instead of waiting for all to finish only the ones relevant to the game are tracked
 
-			});
+				//on finishing all ajax requests, loaded all available questions
+				let ajaxStopCount = 0;
+				$(document).ajaxStop(function() {
+					setTimeout(function() {
+						if (questions.length == 0) {
+							alert("No questions configured yet!");
+							return false;
+						}
+					}, 100);
+
+					imageAnimationSetup(function () {
+						$('#contentWrapper').show();
+					});
+				});
+			*/
 				var blurInterval;
 				var lifeCount = 3;
 				var curPoints = 100;
@@ -220,7 +253,7 @@
 									$('#' + squares[0]).css('opacity', '0');
 									squares.shift();
 									curPoints--;
-									$('#headerPoints').html('Zeit: ' + curPoints);
+									$('#headerPoints').html(M.util.get_string('click.time', 'mod_exagames') + curPoints);
 									if(squares.length === 0) {
 										clearInterval(blurInterval);
 									}
@@ -246,19 +279,32 @@
 
 			function resetTimepoints() {
 				curPoints = 100;
-				$('#headerPoints').html('Zeit: ' + curPoints);
-				$('#headerQuestionCounter').html('Frage ' + questionCnt + '/' + questions.length);
-
+				$('#headerPoints').html(M.util.get_string('click.time', 'mod_exagames') + curPoints);
+				$('#headerQuestionCounter').html(M.util.get_string('click.questionCounter', 'mod_exagames', {
+					current : questionCnt,
+					total: questions.length
+				}));
 			}
 
 			function showScore(mdl_score) {
 				$('#contentWrapper').css('opacity', 0.15);
-				$('#GameContent').append('<div id="scoreContainer"> <h3>Sie haben ' + ((mdl_score*100).toFixed(2)) + '% der Quiz-Punkte in ' + (questions.length*100 - Number(timeScore)) + ' von ' + questions.length*100 + ' Zeiteinheiten im Quiz erreicht!</h3><button class="restart-button" onClick="window.location.reload();">Erneut spielen</button> </div>');
+				$('#GameContent').append('<div id="scoreContainer"> <h3>'
+						+ M.util.get_string('click.score', 'mod_exagames', {
+							score: ((mdl_score*100).toFixed(2)),
+							timeScore: (questions.length * 100 - Number(timeScore)),
+							totalTimeScore: questions.length * 100
+						})
+						+'</h3><button class="restart-button" onClick="window.location.reload();">'
+						+ M.util.get_string('click.restart', 'mod_exagames')
+						+'</button> </div>');
 			}
 
 			function showGameOver() {
 				$('#contentWrapper').css('opacity', 0.15);
-				$('#GameContent').append('<div id="scoreContainer"> <h3>Game Over! :(</h3> </div>');
+				//add restart button
+				$('#GameContent').append('<div id="scoreContainer"> <h3>' + M.util.get_string('click.gameOver','mod_exagames')
+						+'</h3> <button class="restart-button" onClick="window.location.reload();">'
+						+ M.util.get_string('click.restart', 'mod_exagames') + '</button> </div>');
 			}
 
 			function removeStartButton() {
@@ -286,9 +332,11 @@
 					var domAppend = '<ul id="answerlist">';
 					for(var i = 0; i < actQuestion.answers.length; i++) {
 						if(actQuestion.answers[i].isCorrect) {
-							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-correct">' + actQuestion.answers[i].text + '<div class="correct-image"></div></li>';
+							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-correct">'
+									+ actQuestion.answers[i].text + '<div class="correct-image"></div></li>';
 						} else {
-							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-wrong">' + actQuestion.answers[i].text + '<div class="wrong-image"></div></li>';
+							domAppend += '<li id="answer' + i + '" class="alternative alternative-hover alternative-wrong">'
+									+ actQuestion.answers[i].text + '<div class="wrong-image"></div></li>';
 						}
 					}
 					domAppend += '</ul>';
@@ -304,9 +352,13 @@
 					var domAppend = '<div id="answerlist">';
 					for(var i = 0; i < actQuestion.answers.length; i++) {
 						if(actQuestion.answers[i].fraction > 0) {
-							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="' + actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-correct alternative-inline">' + actQuestion.answers[i].text + '<div class="correct-image"></div></li></div>';
+							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="'
+									+ actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-correct alternative-inline">' + actQuestion.answers[i].text
+									+ '<div class="correct-image"></div></li></div>';
 						} else {
-							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="' + actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-wrong alternative-inline">' + actQuestion.answers[i].text + '<div class="wrong-image"></div></li></div>';
+							domAppend += '<div class="answerContainer inline-field"><input type="checkbox" name="answerbox' + i + '" id="answerbox' + i + '" class="checkbox" value="'
+									+ actQuestion.answers[i].text + '"/> <li id="answer' + i + '" class="alternative alternative-wrong alternative-inline">' + actQuestion.answers[i].text
+									+ '<div class="wrong-image"></div></li></div>';
 						}
 					}
 					domAppend += '</div>';
@@ -319,8 +371,6 @@
 							blurInterval = undefined;
 				
 						handleAnswer(e, "multiple-answer");
-
-
 
 						});
 				}
@@ -377,10 +427,14 @@
 				var tempScore = 0;
 				var curAnswerIds = "";
 				var parser = new DOMParser;
-                var maxScoreForQuestion = 0;
+                //var maxScoreForQuestion = 0;
+				debugger;
+				/*
                 for (let i = 0; i < questions[round].answers.length; i++) {
-                    maxScoreForQuestion += Number(questions[round].answers[i].fraction);
+					//only add positive percentages
+                    maxScoreForQuestion += (Number(questions[round].answers[i].fraction) >= 0) ? Number(questions[round].answers[i].fraction) : 0;
                 }
+                */
 				for(var i = 0; i < checkedBoxes.length; i++) {
 					var box = checkedBoxes[i];
 
@@ -395,7 +449,7 @@
 						}
 
 						var file;
-						tempScore += Number(questions[round].answers[i].fraction)/maxScoreForQuestion;
+						tempScore += Number(questions[round].answers[i].fraction);// /maxScoreForQuestion;
 						if(box.alternativeState) {
 							file = "checked.png"
 						} else {
@@ -405,7 +459,9 @@
 						$('#' + box.node[0].id).find('div').css('background-image', 'url(html5/blurrygame/assets/' + file + ')');
 					}
 				}
-				score += (1/questions.length)*tempScore;
+				//limit score between 0% and 100%
+				tempScore = Math.min(1, Math.max(0, tempScore));
+				score += 1 / questions.length * tempScore;
                 answers += "&responses[" + questions[round].id + "]=" + curAnswerIds;
 				selectedAlternativeAnimation();
 				round++;
@@ -450,12 +506,11 @@
 			}
 
 
-
 			function liveCountSetup() {
 				if(lifeCount <= 0)
 					showGameOver();
 					//throw new Error("Game over: No hearts left. :(");
-					$('#heart-container').append('<span id="livesText">Lives: </span>');
+					$('#heart-container').append('<span id="livesText">' + M.util.get_string('click.lives', 'mod_exagames') +'</span>');
 				for(var i = 0; i < lifeCount; i++) {
 					$('#heart-container').append('<img class="heart-img pulse" src="html5/blurrygame/assets/herz2.png"/>');
 				}
@@ -471,8 +526,6 @@
 			}
 
 			function storeResultScore() {
-
-				
 
                 $.ajax({
 					url: (flashvars.gameurl + "&action=data&score=" +score + "&time=" + timeScore),
@@ -495,8 +548,6 @@
                 $('#Game #GameContent *').css('pointer-events', pointerEvents);
 
             }
-
-
 
 	/*
 			function checkboxSettings() {
