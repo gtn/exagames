@@ -106,6 +106,8 @@
 					loadFile(fmImagePath);
 				});
 			});*/
+
+			// Find the Moodle file manager associated with the current iframe.
 			const frameId = window.frameElement.id;
 			const fileManager = window.parent
 					.jQuery('#' + frameId)
@@ -117,11 +119,14 @@
 				const checkImage = function() {
 					window.parent.getFMImage(frameId).then(function(imageUrl) {
 						if (!imageUrl || imageUrl === lastImageUrl) {
+							// Ignore missing images or URLs that have already been processed.
+							// The observer may trigger multiple times for the same file.
 							return;
 						}
 
 						lastImageUrl = imageUrl;
 						console.log('EXAGAMES: New image found:', imageUrl);
+						// remove 'preview' parameter
 						const urlObj = new URL(imageUrl, window.parent.location.href);
 						urlObj.searchParams.delete('preview');
 						fmImagePath = urlObj.toString();
@@ -130,6 +135,10 @@
 					});
 				};
 
+				/* Replace the deprecated DOMSubtreeModified event with a MutationObserver.
+				 * Watch for added/removed elements and changes to image src attributes
+				 * in the file manager, then check whether a new image was selected.
+				*/
 				const observer = new MutationObserver(checkImage);
 				observer.observe(fileManager, {
 					childList: true,

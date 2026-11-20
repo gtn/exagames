@@ -746,18 +746,48 @@ if ($showtop) {
         $whereforusers = ' AND userid IN ('.implode(', ', $userids).') ';
 	}
 	// NOTE: shown MAX score for the user
-    $sql = 'SELECT s.id, MAX(s.score) AS score, u.firstname, u.lastname, s.userid 
-        FROM {exagames_scores} s 
-            JOIN {user} u ON u.id=s.userid 
-        WHERE 
-            score > 0 
+    /*$sql = 'SELECT s.id, MAX(s.score) AS score, u.firstname, u.lastname, s.userid
+        FROM {exagames_scores} s
+            JOIN {user} u ON u.id=s.userid
+        WHERE
+            score > 0
             AND gameid = \''.$game->id.'\'
             AND gametype = \''.$game->gametype.'\'
             '.$whereforusers.'
-        GROUP BY s.userid, u.firstname, u.lastname 
-        ORDER BY score DESC, time ASC 
-        LIMIT 0, '.$limit;
-    $results = $DB->get_records_sql($sql);
+        GROUP BY s.userid, u.firstname, u.lastname
+        ORDER BY score DESC, time ASC
+        LIMIT 0, 5 ';
+    */
+
+    // Rank each user's attempts by score (highest first) and timestamp (earliest first).
+    // This ensures the highest score is selected together with its actual timestamp,
+    // instead of aggregating the score and potentially returning an unrelated timestamp.
+    $sql = "SELECT ranked.userid, ranked.score, ranked.time, u.firstname, u.lastname
+        FROM (
+            -- subquery selecting the scores and sorting them acordingly
+            SELECT s.userid, s.score, s.time,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY s.userid
+                       ORDER BY s.score DESC, s.time ASC, s.id ASC
+                   ) AS rn
+            FROM {exagames_scores} s
+            WHERE s.score > 0
+              AND s.gameid = :gameid
+              AND s.gametype = :gametype
+              $whereforusers
+        ) ranked
+        JOIN {user} u ON u.id = ranked.userid
+        WHERE ranked.rn = 1 -- select only the highest rank attempt of each user
+        ORDER BY ranked.score DESC, ranked.time ASC";
+    $params = [
+            'gameid' => $game->id,
+            'gametype' => $game->gametype,
+    ];
+
+    $results = $DB->get_records_sql($sql, $params, 0, (int)$limit);
+    $sqlparams = ['gameid' => $game->id,
+                'gametype' => $game->gametype];
+    $results = $DB->get_records_sql($sql, $sqlparams, 0, $limit);
 
 	if ($results) {
         if($limit == 1) {
@@ -773,9 +803,9 @@ if ($showtop) {
 //    $table->head = ['Name', 'Score']; // TODO: needed?
         $table->data = []; // This will hold the rows of the table
         foreach ($results as $user) {
-	        if ($shownuserscounter >= 5) {
+	        /*if ($shownuserscounter >= $limit) {
 				break;
-	        }
+	        }*/
             // filter by 'teacher'
             if ($game->hideteachers) {
 				if (exagames_is_teacher($game->course, $user->userid)) {
@@ -789,7 +819,7 @@ if ($showtop) {
                 $fullname,
                 $user->score,
             ];
-            $shownuserscounter++;
+            //$shownuserscounter++;
         }
         echo html_writer::table($table);
     }
