@@ -46,8 +46,11 @@ function gameInit() {
         $('#question-field').css('display', '');
         $(sceneObj).trigger('startGame');
         questionUpdate();
-        timerLabel.setVisible(true); // show the timer
-        sceneObj.countdown.start(manageCountdownEnded.bind(this), BRAINGAME_TIMER_DURATION);
+        if (BRAINGAME_TIMER_TYPE == 1 || BRAINGAME_TIMER_TYPE == 2) {
+            // only execute if timer is configured
+            timerLabel.setVisible(true); // show the timer
+            sceneObj.countdown.start(manageCountdownEnded.bind(this), BRAINGAME_TIMER_DURATION);
+        }
     });
 }
 
@@ -1007,9 +1010,15 @@ function handleAnswer(e, type, forceScore = -1) {
 
 function singleAlternativeHandler(e, answerId, forceScore = -1) {
     if (forceScore == -1) {
-        if (e !== null) {
+        if (BRAINGAME_TIMER_TYPE == 1) {
+            //stop the timer for question countdowns
             sceneObj.countdown.stop();
             sceneObj.countdown.stopBlinking();
+        } else if (BRAINGAME_TIMER_TYPE == 2) {
+            //pause the timer for game-wide countdowns
+            sceneObj.countdown.pause();
+        }
+        if (e !== null) {
             // real answer
             let answText = $(e.currentTarget).text();
             var curAnswerId = null;
@@ -1046,8 +1055,9 @@ function singleAlternativeHandler(e, answerId, forceScore = -1) {
     round++;
 
     if (round == questions.length) {
-        // stop the timer
+        // stop the timer and blinking
         sceneObj.countdown.stop();
+        sceneObj.countdown.stopBlinking();
         // send result to the server
         storeResultScore(function () {
             $('#question-field').empty();
@@ -1059,7 +1069,13 @@ function singleAlternativeHandler(e, answerId, forceScore = -1) {
         setTimeout(function () {
             questionUpdate();
             $(sceneObj).trigger('reset');
-            sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+            if (BRAINGAME_TIMER_TYPE == 1) {
+                //restart the question countdown anew for the next question
+                sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+            } else if (BRAINGAME_TIMER_TYPE == 2) {
+                //resume the game-wide countdown
+                sceneObj.countdown.resume();
+            }
         }, EVALUATION_DISPLAY_DURATION);
     }
 
@@ -1069,8 +1085,12 @@ function singleAlternativeHandler(e, answerId, forceScore = -1) {
 function multipleAlternativesHandler(e, forceScore = -1) {
     var tempScore = 0;
     if (forceScore == -1) {
-        sceneObj.countdown.stop();
-        sceneObj.countdown.stopBlinking();
+        if (BRAINGAME_TIMER_TYPE == 1) {
+            sceneObj.countdown.stop();
+            sceneObj.countdown.stopBlinking();
+        } else if (BRAINGAME_TIMER_TYPE == 2){
+            sceneObj.countdown.pause();
+        }
         var checkedBoxes = getCheckedBoxes();
         var curAnswerIds = "";
         var parser = new DOMParser;
@@ -1112,7 +1132,10 @@ function multipleAlternativesHandler(e, forceScore = -1) {
                 } else {
                     file = "cancel.png";
                 }
-                $('#' + box.node[0].id).find('div').css('background-image', 'url(/mod/exagames/html5/braingame/assets/' + file + ')');
+                box.node.find('.correct-image, .wrong-image').css(
+                    'background-image',
+                    'url(/mod/exagames/html5/braingame/assets/' + file + ')'
+                );
             }
         }
     } else {
@@ -1133,8 +1156,9 @@ function multipleAlternativesHandler(e, forceScore = -1) {
     round++;
 
     if (round == questions.length) {
-        // stop the timer
+        // stop the timer and blinking
         sceneObj.countdown.stop();
+        sceneObj.countdown.stopBlinking();
         // send result to the server
         storeResultScore(function () {
             $('#question-field').empty();
@@ -1146,7 +1170,13 @@ function multipleAlternativesHandler(e, forceScore = -1) {
         setTimeout(function () {
             questionUpdate();
             $(sceneObj).trigger('reset');
-            sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+            if (BRAINGAME_TIMER_TYPE == 1) {
+                //restart the question countdown anew for the next question
+                sceneObj.countdown.start(manageCountdownEnded.bind(), BRAINGAME_TIMER_DURATION);
+            } else if (BRAINGAME_TIMER_TYPE == 2) {
+                //resume the game-wide countdown
+                sceneObj.countdown.resume();
+            }
         }, EVALUATION_DISPLAY_DURATION);
     }
 
@@ -1268,7 +1298,7 @@ class CountdownController {
 
     update()
     {
-        if (!this.timerEvent || this.duration <= 0)
+        if (!this.timerEvent || this.timerEvent.paused || this.duration <= 0)
         {
             return
         }
@@ -1317,6 +1347,21 @@ class CountdownController {
                 this.blinkTween.stop(); // Stop the tween
                 timerLabel.setAlpha(1); // Reset the text to full visibility
             }
+        }
+    }
+
+    pause()
+    {
+        if (this.timerEvent) {
+            this.timerEvent.paused = true;
+            this.stopBlinking()
+        }
+    }
+
+    resume()
+    {
+        if (this.timerEvent) {
+            this.timerEvent.paused = false;
         }
     }
 
